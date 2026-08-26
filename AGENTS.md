@@ -116,7 +116,7 @@ BPMN для bpmn.io — `/diagram-bpmn` (`skill-diagram-bpmn`): файлы `diag
 Mermaid — `/diagram-mermaid` (`skill-diagram-mermaid`): flowchart, DFD, classDiagram, sequenceDiagram, C4; файлы `diagrams/diagram-mermaid-NNN.md` (пояснения перед диаграммой).
 Доменная модель (DDD) — `/ddd` (`skill-ddd`): `requirements/domain-model.md`; в конце прогона обязателен аудит `/review-ddd` (`skill-review-ddd`). Самостоятельный аудит готовой модели — только `/review-ddd`.
 Словарь данных — `/data-dictionary` (`skill-data-dictionary`): `requirements/data-dictionary.md`; после создания или обновления обязательна проверка по гейту скилла до сообщения разработчику о завершении.
-Интерактивный макет окна фронтенда — `/ui-prototyping` (`skill-ui-prototyping`): живой UI по US/UC и стеку из спецификации; запуск окна — не из терминала агента в чате.
+Интерактивный макет — `/ui-prototyping` (`skill-ui-prototyping`): окно приложения (не сайт), красивый вид и клики без функционала; запуск — launcher в проводнике, не терминал агента и не браузер.
 OpenAPI-контракт — `/openai` (`skill-openai`): `requirements/openapi.yaml`; только FR/UC с реальным endpoint; после записи — гейт, Swagger UI и ReDoc (не Simple Browser IDE).
 
 ## 7. Правила работы с файлами
