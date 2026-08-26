@@ -1,6 +1,6 @@
 # Реестр Use Cases TranslateText
 
-Статус пакета: **Черновик, требует согласования**  
+Статус пакета: **Согласовано** (`A0089`)  
 Дата: 2026-08-26  
 Роли: `requirements/user-stories/list-us.md` (Пользователь — primary; Ollama — системный участник)
 
@@ -8,9 +8,9 @@
 
 - `documentation/Specification.md`
 - `requirements/glossary.md`
-- `requirements/functional-requirements.md` (черновик ФТ)
-- `requirements/non-functional-requirements.md` (черновик НФТ)
-- `requirements/answers-project.md` (`A0001`–`A0082`)
+- `requirements/functional-requirements.md` (согласованные ФТ, `A0086`)
+- `requirements/non-functional-requirements.md` (согласованные НФТ, `A0087`)
+- `requirements/answers-project.md` (`A0001`–`A0089`)
 - `requirements/user-stories/` (US-001 … US-008)
 
 Декомпозиция: **1:1 к пакету User Stories**. UC-006 — subfunction (include из UC-001). UC-007 — extension UC-001 и UC-004. UC-008 — user goal; вызывается при заблокированной «Перевести» из UC-001 / UC-007.
@@ -136,4 +136,4 @@ flowchart LR
 
 ## Рекомендуемый следующий шаг
 
-По явной просьбе: `/qc-ft-nft` (новые FT-048…FT-050 ещё не проходили QC ФТ/НФТ).
+Канон ФТ/НФТ после QC обработан (`A0092`–`A0095`). Реализация MVP: `/use-tests` по текущим UI-тестам, затем код поверх макета.

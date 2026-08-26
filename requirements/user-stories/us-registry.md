@@ -1,15 +1,15 @@
 # Реестр User Stories TranslateText
 
-Статус пакета: **Черновик, требует согласования**  
+Статус пакета: **Согласовано** (`A0088`)  
 Роли и права: `list-us.md`
 
 ## Источники правды
 
 - `documentation/Specification.md`
 - `requirements/glossary.md`
-- `requirements/functional-requirements.md` (черновик ФТ)
-- `requirements/non-functional-requirements.md` (черновик НФТ)
-- `requirements/answers-project.md` (`A0001`–`A0082`)
+- `requirements/functional-requirements.md` (согласованные ФТ, `A0086`)
+- `requirements/non-functional-requirements.md` (согласованные НФТ, `A0087`)
+- `requirements/answers-project.md` (`A0001`–`A0088`)
 
 ## Истории
 
@@ -88,4 +88,4 @@
 
 ## Рекомендуемый следующий шаг
 
-По явной просьбе: `/qc-ft-nft` для FT-048…FT-050.
+Канон ФТ/НФТ после QC обработан (`A0092`–`A0095`). Реализация MVP: `/use-tests` по текущим UI-тестам, затем код поверх макета.
