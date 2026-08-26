@@ -113,7 +113,7 @@ Use Cases (Cockburn) этого проекта — через `/uc` (скилл 
 Детали согласования ФТ/НФТ/QC — в скиллах `/ft`, `/nft`, `/qc-ft-nft`.
 Детали User Stories — в скилле `/us` (`skill-us`); Use Cases — в скилле `/uc` (`skill-uc`); контроль качества US/UC — `/qc-us-uc` (`skill-quality-control-us-uc`).
 BPMN для bpmn.io — `/diagram-bpmn` (`skill-diagram-bpmn`): файлы `diagrams/bpmn-NNN.bpmn`.
-Mermaid — `/diagram-mermaid` (`skill-diagram-mermaid`): flowchart, DFD, classDiagram, sequenceDiagram, C4; файлы `diagrams/diagram-mermaid-NNN.md` (пояснения перед диаграммой).
+Mermaid — `/diagram-mermaid` (`skill-diagram-mermaid`): flowchart, DFD, classDiagram, sequenceDiagram, C4; файлы `diagrams/diagram-mermaid-NNN.md` (пояснения перед диаграммой). Sequence: до кода Mermaid обязателен прогон anti-pattern guardrails §4.6 скилла.
 Доменная модель (DDD) — `/ddd` (`skill-ddd`): `requirements/domain-model.md`; в конце прогона обязателен аудит `/review-ddd` (`skill-review-ddd`). Самостоятельный аудит готовой модели — только `/review-ddd`.
 Словарь данных — `/data-dictionary` (`skill-data-dictionary`): `requirements/data-dictionary.md`; после создания или обновления обязательна проверка по гейту скилла до сообщения разработчику о завершении.
 Интерактивный макет — `/ui-prototyping` (`skill-ui-prototyping`): окно приложения (не сайт), красивый вид и клики без функционала; запуск — launcher в проводнике, не терминал агента и не браузер.
