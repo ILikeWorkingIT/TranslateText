@@ -1,0 +1,31 @@
+---
+description: >-
+  Стандарты Python этого репозитория: типы, pytest, customtkinter,
+  без Flask/FastAPI/веба. Подключай при правке src/ и tests/.
+globs: src/**/*.py,tests/**/*.py
+alwaysApply: false
+---
+
+# Python TranslateText
+
+Стек продукта: **Python + customtkinter**, тесты — **pytest**. Не подставляй Flask, Django, FastAPI, Jinja, React, Gradio, Streamlit, браузер.
+
+## Код
+
+- Аннотируй публичные функции и методы, включая `-> None`. Не используй `Any`.
+- Импорты — вверху модуля, не в теле функции.
+- Константы палитры и шрифтов — `src/ui/theme.py`. Hex в панелях не пиши.
+- Подписи экрана — `src/ui/messages.py` / глоссарий. Не переименовывай видимый текст: тесты ищут точное совпадение.
+- Интерактивные виджеты — стабильный `self.<роль>` и `widget.qa_id` (аналог `data-testid`; не `_testid`). Не ломай `self.model`, `self.autosave`, `self.status`.
+- I/O (Ollama, файлы) не выполняй в UI-потоке: `Thread(daemon=True)` + `after(...)`. На закрытии окна — флаг стопа и `after_cancel`. Блок `mainloop` — дефект.
+- В одном родителе не смешивай `pack()` и `grid()`.
+- Новую зависимость не добавляй без явной просьбы. Сейчас в `src/requirements.txt` — `customtkinter`.
+
+## Тесты
+
+- Каталог `tests/`, раннер pytest, имена `test_should_<поведение>_when_<условие>`.
+- Не пиши unittest. Не открывай GUI/`mainloop` в тесте.
+- Селекторы: подпись глоссария, `self.*` и `qa_id` (`tests/ui_helpers.py`). HTML `data-testid` не ставь.
+- Набор в этом правиле не гоняй: прогон — `/use-tests`; новые тесты — `/new-tests`.
+
+Рабочий UI по канону — скилл `/frontend`. Макет без логики — `/ui-prototyping`.

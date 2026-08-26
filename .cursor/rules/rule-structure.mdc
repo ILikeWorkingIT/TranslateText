@@ -21,7 +21,7 @@ alwaysApply: true
 * `diagrams` — архитектурные и логические диаграммы (PlantUML / Mermaid / BPMN).
 * `.cursor/skills` — промпты и инструкции для AI.
 * `.cursor/rules` — правила для AI.
-* `.cursor/commands` — команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/review-ddd`, `/data-dictionary`, `/ui-prototyping`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory` и др.).
+* `.cursor/commands` — команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/review-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory` и др.).
 * `.cursor/agents` — файлы агентов; целевая папка, создаётся по необходимости.
 * `src` — исходный код MVP и макет окна: `app.py`, `ui/`, launcher `run-ui.bat`; UI — customtkinter (окно приложения, не Gradio/Streamlit и не браузер).
 * `reports` — отчёты: `agent-memory.md` (память агента), `incompatibility-ft-nft.md` (QC ФТ/НФТ), `incompatibility-us-uc.md` (QC US/UC), `domain-model-review.md` (аудит DDD), `test-run.md` (прогон автотестов, очередь багов).
@@ -43,7 +43,7 @@ alwaysApply: true
 * **Отчёты:** папка `reports/`. Память агента: `agent-memory.md`. QC ФТ/НФТ: `incompatibility-ft-nft.md`. QC US/UC: `incompatibility-us-uc.md`. Аудит DDD: `domain-model-review.md`. Прогон автотестов: `test-run.md`.
 * **Автотесты:** папка `tests/`. Карта покрытия: `tests/coverage.md`. Раннер проекта — pytest (`test_*.py`). Имя теста: `test_should_<поведение>_when_<условие>`. Новый шаблон не плодить. Папка `test-data/` — не фикстуры автотестов; только по прямому заданию разработчика.
 * **Скиллы:** префикс `skill-` + название в lowercase через дефис. Пример: `skill-ft.md`.
-* **Правила:** префикс `rule-` + название. Примеры: `rule-structure.mdc`, `rule-answers-project.mdc`, `rule-analyst-self-learning.mdc`, `rule-propose-qc-ft-nft.mdc`, `rule-propose-qc-us-uc.mdc`.
+* **Правила:** префикс `rule-` + название. Примеры: `rule-structure.mdc`, `rule-answers-project.mdc`, `rule-analyst-self-learning.mdc`, `rule-propose-qc-ft-nft.mdc`, `rule-propose-qc-us-uc.mdc`, `rule-python.mdc`, `rule-anti-overengineering.mdc`, `rule-anti-sycophancy.mdc`.
 * **Агенты:** префикс `agent-` + название агента. Пример: `agent-analyst.md`. При появлении файлов агентов — в `.cursor/agents`.
 * файл со списком всех команд запуска скиллов `list-commands.md`. Содержит актуальный список CLI-команд, скриптов запуска скиллов, команд Cursor и агентов. При создании нового скилла, команды или агента ИИ обязан автоматически обновлять этот файл. Находится в папке `.cursor`.
 

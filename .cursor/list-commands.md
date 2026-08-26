@@ -17,6 +17,7 @@
 | `/review-ddd` | `.cursor/commands/review-ddd.md` | Критический аудит DDD-модели по `.cursor/skills/skill-review-ddd.md` (самостоятельный режим: только отчёт) |
 | `/data-dictionary` | `.cursor/commands/data-dictionary.md` | Словарь данных (поля, типы, ограничения, MVP) по `.cursor/skills/skill-data-dictionary.md`; после записи файла обязателен гейт проверки до отчёта |
 | `/ui-prototyping` | `.cursor/commands/ui-prototyping.md` | Макет окна приложения: вид и клики, не сайт и не рабочий функционал; скилл `.cursor/skills/skill-ui-prototyping.md` |
+| `/frontend` | `.cursor/commands/frontend.md` | Рабочий desktop UI (customtkinter, тема, стейт) по `.cursor/skills/skill-frontend-developer.md`; макет без функционала — `/ui-prototyping` |
 | `/openai` | `.cursor/commands/openai.md` | OpenAPI-спецификация (YAML, Swagger UI + ReDoc) по `.cursor/skills/skill-openai.md`; после записи файла обязателен гейт проверки и просмотрщики |
 | `/new-tests` | `.cursor/commands/new-tests.md` | Новые автотесты фронтенда по `.cursor/skills/skill-new-tests-front.md`: требования, инвентаризация старых тестов, пробелы в `tests/` |
 | `/use-tests` | `.cursor/commands/use-tests.md` | Прогон автотестов по `.cursor/skills/skill-use-tests-front.md`: отчёт `reports/test-run.md` (очередь багов для агента) и краткое резюме в чат |
@@ -72,4 +73,16 @@
 **Правка** — макет есть. Меняет вид и удобство, напоминает перезапустить тем же launcher. README с нуля не пишет, если способ запуска не сменился.
 
 **Только запуск** — «не вижу окно». Код не трогает. В чате: launcher в проводнике и заголовок окна (не URL браузера).
+
+## Режимы `/frontend`
+
+Отдельной подкоманды нет: режим выбирается по содержимому запроса.
+
+**Фича** — «сделай рабочим», реализовать экран / кнопку / стейт по ФТ. Агент пишет customtkinter-UI в `src/ui/`, токены в `theme.py`, подписи из глоссария / `messages.py`. Тесты в том же ходе не пишет и не гоняет.
+
+**Баг** — регрессия интерфейса, неверный `state`, гонка, блокировка. Минимальный дифф по канону.
+
+**Полировка** — вид и контраст без смены правил ФТ. Селекторы QA (`self.*`, `qa_id`, подписи) не ломает.
+
+Макет «вид + клики, без функционала» — это `/ui-prototyping`, не `/frontend`. Только тесты — `/new-tests`. Только прогон / баги без правки UI — `/use-tests`. После правки предлагает `/new-tests` и `/use-tests` отдельными командами и **не** запускает их в том же прогоне.
 
