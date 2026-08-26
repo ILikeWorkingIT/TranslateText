@@ -118,6 +118,7 @@ Mermaid — `/diagram-mermaid` (`skill-diagram-mermaid`): flowchart, DFD, classD
 Словарь данных — `/data-dictionary` (`skill-data-dictionary`): `requirements/data-dictionary.md`; после создания или обновления обязательна проверка по гейту скилла до сообщения разработчику о завершении.
 Интерактивный макет — `/ui-prototyping` (`skill-ui-prototyping`): окно приложения (не сайт), красивый вид и клики без функционала; запуск — launcher в проводнике, не терминал агента и не браузер.
 OpenAPI-контракт — `/openai` (`skill-openai`): `requirements/openapi.yaml`; только FR/UC с реальным endpoint; после записи — гейт, Swagger UI и ReDoc (не Simple Browser IDE).
+Автотесты фронтенда — создание `/new-tests` (`skill-new-tests-front`): папка `tests/`, карта `tests/coverage.md`. Прогон `/use-tests` (`skill-use-tests-front`): отчёт `reports/test-run.md` (очередь падений для исправления агентом) и краткое резюме в чат.
 
 ## 7. Правила работы с файлами
 
