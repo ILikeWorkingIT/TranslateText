@@ -66,9 +66,9 @@
 | `diagrams` | текстовые диаграммы (PlantUML / Mermaid / BPMN); есть Mermaid | есть | да (текст) | да (текст; картинки и бинарники — нет) |
 | `.cursor/skills` | промпты и инструкции для AI | есть | да | да |
 | `.cursor/rules` | правила для AI | есть | да | да |
-| `.cursor/commands` | команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/review-ddd`, `/data-dictionary`, `/ui-prototyping`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
+| `.cursor/commands` | команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/review-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
 | `.cursor/agents` | файлы агентов | целевая | да | да |
-| `src` | исходный код MVP и макет окна на customtkinter (`run-ui.bat`, `app.py`, `ui/`) | есть | да | да |
+| `src` | исходный код MVP: окно customtkinter (`run-ui.bat`, `app.py`, `ui/`) и прикладной слой (`domain/`, `services/`, `use_cases/` по `/app-layer`) | есть | да | да |
 | `reports` | есть `incompatibility-ft-nft.md`, `incompatibility-us-uc.md`, `domain-model-review.md`; `agent-memory.md` и `test-run.md` — целевые | частично | да | да |
 | `artifacts` | артефакты вне `requirements` | целевая | да | да |
 | `tests` | автотесты pytest (desktop/customtkinter), карта `tests/coverage.md` | есть | да | да |

@@ -18,6 +18,7 @@
 | `/data-dictionary` | `.cursor/commands/data-dictionary.md` | Словарь данных (поля, типы, ограничения, MVP) по `.cursor/skills/skill-data-dictionary.md`; после записи файла обязателен гейт проверки до отчёта |
 | `/ui-prototyping` | `.cursor/commands/ui-prototyping.md` | Макет окна приложения: вид и клики, не сайт и не рабочий функционал; скилл `.cursor/skills/skill-ui-prototyping.md` |
 | `/frontend` | `.cursor/commands/frontend.md` | Рабочий desktop UI (customtkinter, тема, стейт) по `.cursor/skills/skill-frontend-developer.md`; макет без функционала — `/ui-prototyping` |
+| `/app-layer` | `.cursor/commands/app-layer.md` | Прикладной слой за окном (Ollama, нарезка, файлы, очередь) по `.cursor/skills/skill-app-layer.md`; UI-хром — `/frontend` |
 | `/openai` | `.cursor/commands/openai.md` | OpenAPI-спецификация (YAML, Swagger UI + ReDoc) по `.cursor/skills/skill-openai.md`; после записи файла обязателен гейт проверки и просмотрщики |
 | `/new-tests` | `.cursor/commands/new-tests.md` | Новые автотесты фронтенда по `.cursor/skills/skill-new-tests-front.md`: требования, инвентаризация старых тестов, пробелы в `tests/` |
 | `/use-tests` | `.cursor/commands/use-tests.md` | Прогон автотестов по `.cursor/skills/skill-use-tests-front.md`: отчёт `reports/test-run.md` (очередь багов для агента) и краткое резюме в чат |
@@ -84,5 +85,15 @@
 
 **Полировка** — вид и контраст без смены правил ФТ. Селекторы QA (`self.*`, `qa_id`, подписи) не ломает.
 
-Макет «вид + клики, без функционала» — это `/ui-prototyping`, не `/frontend`. Только тесты — `/new-tests`. Только прогон / баги без правки UI — `/use-tests`. После правки предлагает `/new-tests` и `/use-tests` отдельными командами и **не** запускает их в том же прогоне.
+Макет «вид + клики, без функционала» — это `/ui-prototyping`, не `/frontend`. Ollama, нарезка, файлы, очередь — `/app-layer`, не `/frontend`. Только тесты — `/new-tests`. Только прогон / баги без правки UI — `/use-tests`. После правки предлагает `/new-tests` и `/use-tests` отдельными командами и **не** запускает их в том же прогоне.
+
+## Режимы `/app-layer`
+
+Отдельной подкоманды нет: режим выбирается по содержимому запроса.
+
+**Фича** — реализовать службу или use case по ФТ (нарезка, клиент Ollama, парсинг файлов, автосохранение, очередь). Агент пишет `src/domain/`, `src/services/`, `src/use_cases/`. В UI — только `src/ui/bridge.py` (поток + `after`), без перерисовки окна. Unit-тесты служб без GUI — в том же ходе, до клея. `/use-tests` не запускает.
+
+**Баг** — таймаут, гонка `request_id`, битый файл, лимит имён `output`, инвариант очереди. Минимальный дифф по канону.
+
+Свой HTTP-сервер, FastAPI, Flask, облако — отказ. Виджеты и тема — `/frontend`. Макет — `/ui-prototyping`. Только прогон — `/use-tests`.
 
