@@ -109,7 +109,7 @@ Use Cases (Cockburn) этого проекта — через `/uc` (скилл 
 
 Закрытые ответы — только в `requirements/answers-project.md` (`Axxxx`), формат и перенос —
 `.cursor/rules/rule-answers-project.mdc`. В «Источнике» требований — `Axxxx`, не «решение заказчика».
-`Axxxx` важнее предварительного ТЗ при конфликте; не путать с `MR-01`…`MR-07` (правила измерения НФТ).
+`Axxxx` важнее предварительного ТЗ при конфликте; не путать с `MR-01`…`MR-12` (правила измерения НФТ в файле НФТ).
 Детали согласования ФТ/НФТ/QC — в скиллах `/ft`, `/nft`, `/qc-ft-nft`.
 Детали User Stories — в скилле `/us` (`skill-us`); Use Cases — в скилле `/uc` (`skill-uc`); контроль качества US/UC — `/qc-us-uc` (`skill-quality-control-us-uc`).
 BPMN для bpmn.io — `/diagram-bpmn` (`skill-diagram-bpmn`): файлы `diagrams/bpmn-NNN.bpmn`.
@@ -118,7 +118,7 @@ Mermaid — `/diagram-mermaid` (`skill-diagram-mermaid`): flowchart, DFD, classD
 Словарь данных — `/data-dictionary` (`skill-data-dictionary`): `requirements/data-dictionary.md`; после создания или обновления обязательна проверка по гейту скилла до сообщения разработчику о завершении.
 Интерактивный макет — `/ui-prototyping` (`skill-ui-prototyping`): окно приложения (не сайт), красивый вид и клики без функционала; запуск — launcher в проводнике, не терминал агента и не браузер.
 OpenAPI-контракт — `/openai` (`skill-openai`): `requirements/openapi.yaml`; только FR/UC с реальным endpoint; после записи — гейт, Swagger UI и ReDoc (не Simple Browser IDE).
-Автотесты фронтенда — создание `/new-tests` (`skill-new-tests-front`): папка `tests/`, карта `tests/coverage.md`. Прогон `/use-tests` (`skill-use-tests-front`): отчёт `reports/test-run.md` (очередь падений для исправления агентом) и краткое резюме в чат.
+Автотесты UI — создание `/new-tests` (`skill-new-tests-front`): папка `tests/` (pytest, desktop/customtkinter), карта `tests/coverage.md`. Прогон `/use-tests` (`skill-use-tests-front`): отчёт `reports/test-run.md` (очередь падений для исправления агентом) и краткое резюме в чат.
 
 ## 7. Правила работы с файлами
 
@@ -138,7 +138,7 @@ OpenAPI-контракт — `/openai` (`skill-openai`): `requirements/openapi.y
 
 1. Правда — файлы **этого** репозитория; чужие проекты не подтягивать без явного `@` / вложения.
 2. Предварительное ТЗ — `documentation/`.
-3. `Axxxx` и согласованные ФТ/НФТ в `requirements/` уточняют ТЗ и при расхождении важнее его.
+3. `Axxxx` и согласованные пакеты в `requirements/` (ФТ, НФТ, US, UC, доменная модель, словарь данных — `A0086`–`A0091`) уточняют ТЗ и при расхождении важнее его.
 4. Не опираться на устаревшие «решение заказчика» / `Qn`, если есть `Axxxx`.
 
 Команды и скиллы: `.cursor/list-commands.md`.

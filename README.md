@@ -2,7 +2,7 @@
 
 Локальное минималистичное десктоп-приложение на Python для перевода больших объёмов текста, книг и документов с английского на русский. Перевод бесплатный: движок — локальный Ollama, семейство моделей Qwen2.5.
 
-Стек по предварительному ТЗ: Python, Gradio (или Streamlit, если окажется удобнее), локальный HTTP API Ollama. Своего серверного бэкенда в ТЗ нет.
+Стек MVP: Python, окно на **customtkinter**, локальный HTTP API Ollama. Своего серверного бэкенда в ТЗ нет. Gradio и Streamlit названы в предварительном ТЗ; для окна приложения не используются.
 
 ## Как открыть интерфейс
 
@@ -21,7 +21,6 @@
 
 Нужен Python с tcl/tk. Перевод и сохранение файлов в макете не выполняются.
 
-
 ## Локальный Ollama
 
 Запросы перевода идут на локальный адрес Ollama, не в облако. Сведения о машине — `documentation/other-description.md` (заметки из другого проекта; для TranslateText нужны только факты про Ollama, не пайплайн Stable Diffusion).
@@ -31,47 +30,48 @@
 - API: `http://127.0.0.1:11434` (`POST /api/chat`)
 - контейнер Docker: `ollama_local`, данные: `F:\Docker\ollama\ollama_data`
 - пример модели: `qwen2.5:3b` (уже скачана)
-- сейчас Ollama запущена **на CPU**; GPU RTX 3060 в той заметке отдана другому сервису
+- в той заметке Ollama запущена **на CPU**, GPU RTX 3060 отдана Forge
 
-ТЗ ожидает быстрый перевод с RTX 3060. Как именно использовать GPU для TranslateText — ещё не закрыто ответом заказчика (`Axxxx`).
+Стенд TranslateText закрыт ответами `A0023`, `A0024`, `A0028`: на время перевода GPU RTX 3060 отдавать Ollama, Forge параллельно не гонять. Норма времени — p95 ≤ 60 с на фрагмент 4000–5000 символов для `qwen2.5:3b`. Если Ollama недоступна — сообщение с путём `F:\Docker\Ollama\start_ollama.bat` (`A0008`).
 
 ## Документация API этого репозитория
 
-Своего OpenAPI-контракта (`requirements/openapi.yaml`) пока нет: продукт ходит в API Ollama, своего HTTP-сервера в ТЗ нет. Если контракт появится по команде `/openai`, способ просмотра (Swagger UI / ReDoc) будет описан здесь и скриптами в `requirements`.
+Своего OpenAPI-контракта (`requirements/openapi.yaml`) нет: продукт ходит в API Ollama, своего HTTP-сервера в ТЗ нет. Если контракт появится по команде `/openai`, способ просмотра (Swagger UI / ReDoc) будет описан здесь и скриптами в `requirements`.
 
 ## Входные документы
 
-- `documentation/Specification.md` — предварительное ТЗ (UI, chunking, прогресс, Ollama, форматы файлов).
+- `documentation/Specification.md` — предварительное ТЗ (UI, разбиение на фрагменты, прогресс, Ollama, форматы файлов).
 - `documentation/other-description.md` — среда Ollama на этой машине (адрес, Docker, модель, CPU/GPU).
 - `documentation/project-structure-v1-1.md` — структура папок и правила именования (синхронизируется с `.cursor/rules/rule-structure.mdc`).
 
-**Иерархия источников:** предварительное ТЗ — в `documentation/`; уточнения — в `requirements/answers-project.md` (`Axxxx`) и согласованных ФТ/НФТ. При конфликте с предварительным ТЗ приоритет у `Axxxx` и согласованных требований. Поведение агента — в `AGENTS.md`; память проекта — в `reports/agent-memory.md`.
+**Иерархия источников:** предварительное ТЗ — в `documentation/`; уточнения — в `requirements/answers-project.md` (`Axxxx`) и согласованных пакетах ФТ, НФТ, US, UC, доменной модели и словаря данных (`A0086`–`A0091`). При конфликте с предварительным ТЗ приоритет у `Axxxx` и согласованных требований. Поведение агента — в `AGENTS.md`; память проекта — в `reports/agent-memory.md` (файл создаётся по команде «запомни» / `/pin-memory`).
 
-## Что должно уметь приложение (по ТЗ)
+## Что должно уметь приложение (по ТЗ и `Axxxx`)
 
 - Открыть файл `.txt`, `.md`, `.docx`, `.pdf` в левое окно «Оригинальный текст»; туда же можно вставить текст вручную.
 - Правое окно «Русский перевод»; сохранить его в `.txt` или `.docx`.
 - Выбрать модель Ollama из списка, который опрашивает локальное API.
 - Поле «Кастомная инструкция» (системный промпт); по умолчанию — базовый промпт переводчика.
-- Кнопка «Перевести».
+- Кнопка «Перевести»; галочка «Автосохранение» (по умолчанию включена) — запись `.txt` в папку `output`.
 - Длинный текст незаметно режется на фрагменты (ориентир: абзацы, не больше 4000–5000 символов), перевод по очереди, склейка справа.
 - Индикатор прогресса при переводе большого документа.
+- Если Ollama недоступна или список моделей пуст — «Перевести» заблокирована; по наведению подсказка, почему кнопка недоступна.
 
 ## Структура папок
 
 | Папка / файл | Назначение | Статус | Коммит / репозиторий | Индексация ИИ |
 | --- | --- | --- | --- | --- |
 | `documentation` | ТЗ и материалы разработчика | есть | да | да |
-| `requirements` | есть `glossary.md`, `answers-project.md`, `functional-requirements.md`, `non-functional-requirements.md`, `user-stories/`; остальные (`domain-model.md`, `data-dictionary.md`, `openapi.yaml`, `use-cases/`) — целевые | частично | да | да |
-| `diagrams` | текстовые диаграммы (PlantUML / Mermaid / BPMN) | целевая | да (текст) | да (текст; картинки и бинарники — нет) |
+| `requirements` | есть `glossary.md`, `answers-project.md`, `functional-requirements.md`, `non-functional-requirements.md`, `domain-model.md`, `data-dictionary.md`, `user-stories/`, `use-cases/`; `openapi.yaml` и скрипты просмотра API — целевые (своего HTTP нет) | частично | да | да |
+| `diagrams` | текстовые диаграммы (PlantUML / Mermaid / BPMN); есть Mermaid | есть | да (текст) | да (текст; картинки и бинарники — нет) |
 | `.cursor/skills` | промпты и инструкции для AI | есть | да | да |
 | `.cursor/rules` | правила для AI | есть | да | да |
-| `.cursor/commands` | команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/openai`, `/pin-memory` и др.) | есть | да | да |
+| `.cursor/commands` | команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/review-ddd`, `/data-dictionary`, `/ui-prototyping`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
 | `.cursor/agents` | файлы агентов | целевая | да | да |
-| `src` | исходный код MVP, скрипты, настройки (прототип UI на Gradio) | есть | да | да |
-| `reports` | есть `incompatibility-ft-nft.md`; остальные (`agent-memory.md`, `incompatibility-us-uc.md`, `domain-model-review.md`) — целевые | частично | да | да |
+| `src` | исходный код MVP и макет окна на customtkinter (`run-ui.bat`, `app.py`, `ui/`) | есть | да | да |
+| `reports` | есть `incompatibility-ft-nft.md`, `incompatibility-us-uc.md`, `domain-model-review.md`; `agent-memory.md` и `test-run.md` — целевые | частично | да | да |
 | `artifacts` | артефакты вне `requirements` | целевая | да | да |
-| `tests` | автотесты | целевая | да | да |
+| `tests` | автотесты pytest (desktop/customtkinter), карта `tests/coverage.md` | есть | да | да |
 | `test-data` | зарезервирована; только по прямому заданию разработчика | целевая | да | да |
 | `legacy` | исходники и аналитика другого проекта; только по прямому заданию | — | нет | нет |
 | `old-skills` | скиллы из другого проекта; только по прямому заданию | — | нет | нет |
