@@ -20,7 +20,7 @@
 * `.cursor/commands` — команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/review-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory` и др.).
 * `.cursor/agents` — файлы агентов; целевая папка, создаётся по необходимости.
 * `src` — исходный код MVP и макет окна: `app.py`, `ui/`, прикладной слой `domain/` / `services/` / `use_cases/` (команда `/app-layer`), launcher `run-ui.bat`; UI — customtkinter (окно приложения, не Gradio/Streamlit и не браузер).
-* `reports` — отчёты: `agent-memory.md` (память агента), `incompatibility-ft-nft.md` (QC ФТ/НФТ), `incompatibility-us-uc.md` (QC US/UC), `domain-model-review.md` (аудит DDD), `test-run.md` (прогон автотестов, очередь багов).
+* `reports` — отчёты: `agent-memory.md` (память агента), `incompatibility-ft-nft.md` (QC ФТ/НФТ), `incompatibility-us-uc.md` (QC US/UC), `domain-model-review.md` (аудит DDD), `test-run.md` (прогон автотестов, очередь багов), `checklist.md` (чеклист срезов MVP).
 * `artifacts` — артефакты проекта, кроме тех, что указаны для папки requirements; целевая папка, создаётся по необходимости.
 * `test-data` — зарезервирована на будущее; использовать только по прямому заданию разработчика; целевая папка.
 * `tests` — автотесты (pytest, поверхность desktop/customtkinter); карта покрытия `tests/coverage.md`.
@@ -36,7 +36,7 @@
 * **Словарь данных:** `data-dictionary.md` в `requirements/`.
 * **OpenAPI:** `openapi.yaml` в `requirements/` — только если появится свой HTTP API (команда `/openai`).
 * **Диаграммы:** папка `diagrams/`. Если пользователь задал имя файла — сохранить его (например `diagram-dfd-001.md`, `diagram-class-001.md`). Если имя не задано — `diagram-mermaid-NNN.md`. BPMN 2.0: `bpmn-NNN.bpmn`. Новый предмет моделирования — новый номер; пересоздание той же диаграммы — тот же файл.
-* **Отчёты:** папка `reports/`. Память агента: `agent-memory.md`. QC ФТ/НФТ: `incompatibility-ft-nft.md`. QC US/UC: `incompatibility-us-uc.md`. Аудит DDD: `domain-model-review.md`. Прогон автотестов: `test-run.md`.
+* **Отчёты:** папка `reports/`. Память агента: `agent-memory.md`. QC ФТ/НФТ: `incompatibility-ft-nft.md`. QC US/UC: `incompatibility-us-uc.md`. Аудит DDD: `domain-model-review.md`. Прогон автотестов: `test-run.md`. Чеклист срезов MVP: `checklist.md`.
 * **Автотесты:** папка `tests/`. Карта покрытия: `tests/coverage.md`. Раннер проекта — pytest (`test_*.py`). Имя теста: `test_should_<поведение>_when_<условие>`. Новый шаблон не плодить. Папка `test-data/` — не фикстуры автотестов; только по прямому заданию разработчика.
 * **Скиллы:** префикс `skill-` + название в lowercase через дефис. Пример: `skill-ft.md`.
 * **Правила:** префикс `rule-` + название. Примеры: `rule-structure.mdc`, `rule-answers-project.mdc`, `rule-analyst-self-learning.mdc`, `rule-propose-qc-ft-nft.mdc`, `rule-propose-qc-us-uc.mdc`, `rule-python.mdc`, `rule-anti-overengineering.mdc`, `rule-anti-sycophancy.mdc`.
