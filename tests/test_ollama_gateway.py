@@ -79,3 +79,26 @@ def test_should_close_httpx_client_when_gateway_closes() -> None:
     gateway = OllamaGateway(client=_client(httpx.MockTransport(handler)))
     gateway.close()
     assert gateway._client.is_closed
+
+
+def test_should_post_chat_to_local_ollama_when_translating_fragment() -> None:
+    """FT-012, FT-013, happy: перевод — POST /api/chat только на локальный адрес."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST"
+        assert str(request.url) == "http://127.0.0.1:11434/api/chat"
+        return httpx.Response(
+            200,
+            json={"message": {"role": "assistant", "content": "Привет"}},
+        )
+
+    gateway = OllamaGateway(client=_client(httpx.MockTransport(handler)))
+    try:
+        text = gateway.translate_fragment(
+            model="qwen2.5:3b",
+            instruction="sys",
+            source="Hello",
+        )
+    finally:
+        gateway.close()
+    assert text == "Привет", "шлюз возвращает текст перевода из ответа локального API"

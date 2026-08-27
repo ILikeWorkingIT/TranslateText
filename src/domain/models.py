@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Literal, Protocol
 
 PREFERRED_MODEL = "qwen2.5:3b"
 
@@ -27,3 +27,23 @@ class ModelsRefreshedEvent:
     request_id: int
     models: tuple[str, ...]
     selected_model: str
+
+
+@dataclass(frozen=True)
+class StartTranslationCommand:
+    request_id: int
+    original_text: str
+    instruction: str
+    instruction_confirmed: bool
+    model: str
+    direction: str
+
+
+@dataclass(frozen=True)
+class QueueEvent:
+    request_id: int
+    status: Literal["inProgress", "completed", "incomplete"]
+    next_index: int
+    processed_source_chars: int
+    total_source_chars: int
+    translation_so_far: str

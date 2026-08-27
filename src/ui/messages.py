@@ -17,6 +17,7 @@ DIRECTION_VALUES = (DIRECTION_EN_RU, DIRECTION_RU_EN)
 
 HINT_NO_TEXT = "Нет текста для перевода"
 HINT_OLLAMA_DOWN = "Ollama не работает"
+HINT_IN_PROGRESS = "Идёт перевод"
 STATUS_OLLAMA_UNAVAILABLE = (
     "Локальный Ollama недоступен. Запустите файл start_ollama.bat "
     "в папке F:\\Docker\\Ollama"

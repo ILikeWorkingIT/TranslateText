@@ -45,6 +45,13 @@ def _set_qa_id(widget: ctk.CTkBaseClass, qa_id: str) -> None:
     widget.qa_id = qa_id
 
 
+def _focus_field_on_click(widget: ctk.CTkBaseClass, box: ctk.CTkTextbox) -> None:
+    def _focus(_event: object, target: ctk.CTkTextbox = box) -> None:
+        target.focus_set()
+
+    widget.bind("<Button-1>", _focus)
+
+
 def _ghost_button(
     parent: ctk.CTkFrame,
     *,
@@ -103,6 +110,8 @@ def _text_card(
     )
     box.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 16))
     _set_qa_id(box, qa_id)
+    _focus_field_on_click(title_label, box)
+    _focus_field_on_click(card, box)
     return card, title_label, box
 
 
@@ -231,13 +240,14 @@ class InstructionCard(ctk.CTkFrame):
             border_color=LINE,
         )
         self.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(
+        title = ctk.CTkLabel(
             self,
             text=LABEL_CUSTOM_INSTRUCTION,
             font=FONT_LABEL,
             text_color=LABEL,
             anchor="w",
-        ).grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 6))
+        )
+        title.grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 6))
         self.instruction = ctk.CTkTextbox(
             self,
             height=96,
@@ -250,6 +260,8 @@ class InstructionCard(ctk.CTkFrame):
         self.instruction.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 16))
         self.instruction.insert("0.0", initial_prompt)
         _set_qa_id(self.instruction, "field-instruction")
+        _focus_field_on_click(title, self.instruction)
+        _focus_field_on_click(self, self.instruction)
 
 
 class FooterBar(ctk.CTkFrame):

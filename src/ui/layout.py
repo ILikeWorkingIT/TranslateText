@@ -5,11 +5,13 @@ from typing import Literal
 
 import customtkinter as ctk
 
-from domain.models import ModelsRefreshedEvent
+from domain.models import ModelsRefreshedEvent, QueueEvent
 from services.ollama_gateway import OllamaGateway
-from ui.bridge import ModelsBridge
+from ui.bridge import ModelsBridge, TranslationBridge
+from ui.clipboard import read_plain_clipboard
 from ui.messages import (
     DIRECTION_EN_RU,
+    HINT_IN_PROGRESS,
     HINT_NO_TEXT,
     HINT_OLLAMA_DOWN,
     STATUS_OLLAMA_UNAVAILABLE,
@@ -19,7 +21,7 @@ from ui.messages import (
 from ui.panels import FooterBar, HeaderBar, InstructionCard, TextPanes
 from ui.theme import BG, CARD, FONT_STATUS, TEXT
 
-TranslateState = Literal["idle"]
+TranslateState = Literal["idle", "loading"]
 OllamaAvailability = Literal["unknown", "available", "unavailable"]
 
 
@@ -36,6 +38,7 @@ class TranslateTextWindow(ctk.CTk):
         self._applying_models = False
         self._ollama_availability: OllamaAvailability = "unknown"
         self._direction = DIRECTION_EN_RU
+        self._paste_alive = True
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build()
         self._models_bridge = ModelsBridge(
@@ -43,6 +46,11 @@ class TranslateTextWindow(ctk.CTk):
             ollama=OllamaGateway(),
             on_models=self._on_models_refreshed,
             on_unavailable=self._on_models_unavailable,
+        )
+        self._translation_bridge = TranslationBridge(
+            host=self,
+            ollama=OllamaGateway(),
+            on_event=self._on_queue_event,
         )
         self._bind_model_refresh_triggers()
         self._request_models_refresh()
@@ -97,8 +105,10 @@ class TranslateTextWindow(ctk.CTk):
 
         self._watch_textbox(self.original)
         self._watch_textbox(self.translation)
+        self._enable_field_paste(self.instruction)
         self._watch_model_list()
         self._bind_translate_hover()
+        self._bind_window_paste()
         self._refresh_action_states()
 
     def _watch_textbox(self, box: ctk.CTkTextbox) -> None:
@@ -106,7 +116,10 @@ class TranslateTextWindow(ctk.CTk):
         original_delete = box.delete
 
         def insert(index: str, text: str, tags: str | None = None) -> None:
-            original_insert(index, text, tags)
+            if tags is None:
+                original_insert(index, text)
+            else:
+                original_insert(index, text, tags)
             self._refresh_action_states()
 
         def delete(index1: str, index2: str | None = None) -> None:
@@ -116,7 +129,138 @@ class TranslateTextWindow(ctk.CTk):
         box.insert = insert
         box.delete = delete
         box.bind("<KeyRelease>", lambda _event: self._refresh_action_states())
-        box.bind("<<Paste>>", lambda _event: self.after_idle(self._refresh_action_states))
+        self._enable_field_paste(box)
+
+    def _enable_field_paste(self, box: ctk.CTkTextbox) -> None:
+        def on_paste(_event: tkinter.Event) -> str:
+            self._insert_clipboard(box)
+            return "break"
+
+        def on_ctrl_key(event: tkinter.Event) -> str | None:
+            # VK_V=86 не зависит от раскладки: на RU keysym = Cyrillic_em.
+            if int(getattr(event, "keycode", 0) or 0) != 86:
+                return None
+            self._insert_clipboard(box)
+            return "break"
+
+        inner = getattr(box, "_textbox", box)
+        for sequence in (
+            "<<Paste>>",
+            "<Control-v>",
+            "<Control-V>",
+            "<Control-Key-v>",
+            "<Control-Key-V>",
+            "<Control-Key-Cyrillic_em>",
+            "<Control-Key-Cyrillic_EM>",
+            "<Shift-Insert>",
+        ):
+            inner.bind(sequence, on_paste, add="+")
+            box.bind(sequence, on_paste)
+        inner.bind("<Control-KeyPress>", on_ctrl_key, add="+")
+        box.bind("<Control-KeyPress>", on_ctrl_key)
+        try:
+            inner.event_add(
+                "<<Paste>>",
+                "<Control-Key-Cyrillic_em>",
+                "<Control-Key-Cyrillic_EM>",
+            )
+        except tkinter.TclError:
+            pass
+        canvas = getattr(box, "_canvas", None)
+        if canvas is not None:
+            canvas.bind("<Button-1>", lambda _event: box.focus_set(), add="+")
+        tkinter.Misc.bind(box, "<Button-1>", lambda _event: box.focus_set(), add="+")
+
+    def _bind_window_paste(self) -> None:
+        for sequence in (
+            "<Control-v>",
+            "<Control-V>",
+            "<Control-Key-v>",
+            "<Control-Key-V>",
+            "<Control-Key-Cyrillic_em>",
+            "<Control-Key-Cyrillic_EM>",
+            "<Shift-Insert>",
+            "<Control-KeyPress>",
+        ):
+            tkinter.Misc.bind_all(self, sequence, self._on_window_paste, add="+")
+        try:
+            self.event_add(
+                "<<Paste>>",
+                "<Control-Key-Cyrillic_em>",
+                "<Control-Key-Cyrillic_EM>",
+            )
+        except tkinter.TclError:
+            pass
+
+    def _on_window_paste(self, event: tkinter.Event) -> str | None:
+        if not getattr(self, "_paste_alive", False):
+            return None
+        if not self.winfo_exists():
+            return None
+        keycode = int(getattr(event, "keycode", 0) or 0)
+        keysym = str(getattr(event, "keysym", "") or "").lower()
+        # Control-KeyPress ловит все Ctrl+*; только физическая V / Cyrillic_em / Insert.
+        if keycode not in (0, 86) and keysym not in (
+            "v",
+            "cyrillic_em",
+            "insert",
+            "",
+        ):
+            return None
+        box = self._focused_app_textbox()
+        if box is None:
+            box = self._textbox_under_pointer()
+        if box is None:
+            return None
+        box.focus_set()
+        if self._insert_clipboard(box):
+            return "break"
+        return None
+
+    def _focused_app_textbox(self) -> ctk.CTkTextbox | None:
+        try:
+            focused = self.focus_get()
+        except tkinter.TclError:
+            return None
+        return self._as_app_textbox(focused)
+
+    def _textbox_under_pointer(self) -> ctk.CTkTextbox | None:
+        try:
+            widget = self.winfo_containing(*self.winfo_pointerxy())
+        except tkinter.TclError:
+            return None
+        return self._as_app_textbox(widget)
+
+    def _as_app_textbox(self, widget: tkinter.Misc | None) -> ctk.CTkTextbox | None:
+        known = (self.original, self.translation, self.instruction)
+        current: tkinter.Misc | None = widget
+        while current is not None:
+            if current in known:
+                return current
+            parent = getattr(current, "master", None)
+            if parent is current:
+                break
+            current = parent
+        return None
+
+    def _insert_clipboard(self, box: ctk.CTkTextbox) -> bool:
+        text = read_plain_clipboard(self)
+        if not text:
+            return False
+        inner = getattr(box, "_textbox", box)
+        try:
+            if str(inner.cget("state")) == "disabled":
+                return False
+        except tkinter.TclError:
+            pass
+        try:
+            box.delete("sel.first", "sel.last")
+        except tkinter.TclError:
+            pass
+        box.insert("insert", text)
+        box.focus_set()
+        self._refresh_action_states()
+        return True
 
     def _watch_model_list(self) -> None:
         original_configure = self.model.configure
@@ -194,6 +338,14 @@ class TranslateTextWindow(ctk.CTk):
         if value:
             self.instruction.insert("0.0", value)
 
+    def _set_translation_text(self, value: str) -> None:
+        self.translation.delete("0.0", "end")
+        if value:
+            self.translation.insert("0.0", value)
+
+    def _translation_in_progress(self) -> bool:
+        return self._ui_state == "loading"
+
     def _models_empty(self) -> bool:
         values = self.model.cget("values")
         if values is None:
@@ -208,7 +360,11 @@ class TranslateTextWindow(ctk.CTk):
     def _refresh_action_states(self) -> None:
         original_empty = len(self._text_of(self.original)) == 0
         translation_empty = len(self._text_of(self.translation)) == 0
-        translate_blocked = original_empty or self._ollama_blocks_translate()
+        translate_blocked = (
+            self._translation_in_progress()
+            or original_empty
+            or self._ollama_blocks_translate()
+        )
         self.translate.configure(state="disabled" if translate_blocked else "normal")
         self.save.configure(state="disabled" if translation_empty else "normal")
         if self._ollama_availability == "unavailable":
@@ -239,6 +395,8 @@ class TranslateTextWindow(ctk.CTk):
         return None
 
     def _blocking_hint_text(self) -> str | None:
+        if self._translation_in_progress():
+            return HINT_IN_PROGRESS
         if self._ollama_blocks_translate():
             return HINT_OLLAMA_DOWN
         if len(self._text_of(self.original)) == 0:
@@ -274,10 +432,49 @@ class TranslateTextWindow(ctk.CTk):
         return
 
     def _on_translate(self) -> None:
+        if self._translation_in_progress():
+            return
         if self._ollama_blocks_translate():
             return
-        if len(self._text_of(self.original)) == 0:
+        original = self._text_of(self.original)
+        if len(original) == 0:
             return
+        instruction = self._text_of(self.instruction)
+        if len(instruction) == 0:
+            return
+        model = str(self.model.get())
+        if not model:
+            return
+        self._ui_state = "loading"
+        self.progress.set(0)
+        self._refresh_action_states()
+        self._translation_bridge.start(
+            original_text=original,
+            instruction=instruction,
+            model=model,
+            direction=self._direction,
+        )
+
+    def _on_queue_event(self, event: QueueEvent) -> None:
+        if event.status == "inProgress":
+            self._set_progress_from_event(event)
+            return
+        if event.status == "completed":
+            self._set_translation_text(event.translation_so_far)
+            self.progress.set(1)
+            self._ui_state = "idle"
+            self._refresh_action_states()
+            return
+        self._ui_state = "idle"
+        self._refresh_action_states()
+
+    def _set_progress_from_event(self, event: QueueEvent) -> None:
+        if event.total_source_chars <= 0:
+            self.progress.set(0)
+            return
+        self.progress.set(
+            event.processed_source_chars / event.total_source_chars
+        )
 
     def _on_model(self, _value: str) -> None:
         return
@@ -304,9 +501,13 @@ class TranslateTextWindow(ctk.CTk):
         self.destroy()
 
     def destroy(self) -> None:
-        bridge = getattr(self, "_models_bridge", None)
-        if bridge is not None:
-            bridge.close()
+        self._paste_alive = False
+        translation = getattr(self, "_translation_bridge", None)
+        if translation is not None:
+            translation.close()
+        models = getattr(self, "_models_bridge", None)
+        if models is not None:
+            models.close()
         super().destroy()
 
     def run(self) -> None:

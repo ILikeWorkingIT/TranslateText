@@ -1,4 +1,5 @@
 import sys
+import threading
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,9 @@ class RecordingOllama:
     def __init__(self, names: tuple[str, ...]) -> None:
         self.names = names
         self.list_calls = 0
+        self.translate_calls: list[tuple[str, str, str]] = []
+        self.translation_result = "Привет"
+        self.translate_hold: threading.Event | None = None
 
     def list_models(self) -> tuple[str, ...]:
         self.list_calls += 1
@@ -35,7 +39,11 @@ class RecordingOllama:
     def translate_fragment(
         self, *, model: str, instruction: str, source: str
     ) -> str:
-        raise NotImplementedError
+        self.translate_calls.append((model, instruction, source))
+        hold = self.translate_hold
+        if hold is not None:
+            hold.wait(timeout=10)
+        return self.translation_result
 
     def close(self) -> None:
         return
@@ -51,9 +59,11 @@ def open_window(monkeypatch):
             patch_combobox_event_generate(self)
 
     apps = []
+    ports = []
 
     def _open(names: tuple[str, ...]):
         port = RecordingOllama(names)
+        ports.append(port)
         monkeypatch.setattr("ui.layout.OllamaGateway", lambda: port)
         app = HarnessWindow()
         apps.append(app)
@@ -64,6 +74,9 @@ def open_window(monkeypatch):
         return app, port
 
     yield _open
+    for port in ports:
+        if port.translate_hold is not None:
+            port.translate_hold.set()
     for app in apps:
         for attr in ("_status_after", "_hint_leave_after"):
             after_id = getattr(app, attr, "")

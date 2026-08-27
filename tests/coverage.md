@@ -2,7 +2,7 @@
 
 Поверхность: desktop (CustomTkinter). Раннер: pytest. Прогон — команда `/use-tests`.
 
-Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
+Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
 
 | Тест | Файл | Требования | Слой | Состояние UI | Примечание |
 | --- | --- | --- | --- | --- | --- |
@@ -55,3 +55,13 @@
 | `test_should_keep_original_text_when_ollama_becomes_unavailable` | `tests/test_ollama_unavailable.py` | FT-024; US-007 AC1 | negative | error | оригинал не очищается |
 | `test_should_enable_translate_when_models_return_after_unavailable` | `tests/test_ollama_unavailable.py` | FT-024; FT-048; A0079; US-007 AC1 | happy | — | клик по «Модель», статус снят |
 | `test_should_show_ollama_hint_when_original_empty_and_api_unavailable` | `tests/test_ollama_unavailable.py` | FT-050; A0082; US-008 AC5 | edge | disabled | «Ollama не работает», не «Нет текста…» |
+| `test_should_put_russian_translation_in_field_when_user_translates_en_ru` | `tests/test_translation.py` | FT-009; FT-010; FT-016; US-001 AC1 | happy | success | один фрагмент, снимок EN→RU |
+| `test_should_put_english_translation_in_field_when_user_translates_ru_en` | `tests/test_translation.py` | FT-002; FT-010; US-009 AC1 | happy | success | подпись «Английский перевод» |
+| `test_should_use_selected_model_when_user_translates` | `tests/test_translation.py` | FT-006 | happy | success | не умолчание qwen |
+| `test_should_show_progress_zero_then_hundred_when_single_fragment_translates` | `tests/test_translation.py` | FT-022; A0039; NFT-002 | happy | loading | 0 % до ответа, 100 % после |
+| `test_should_disable_translate_when_translation_is_in_progress` | `tests/test_translation.py` | FT-031; US-001 AC1 | negative | loading | оригинал не очищается |
+| `test_should_show_in_progress_hint_when_pointer_hovers_during_translation` | `tests/test_translation.py` | FT-050; US-008 | negative | loading | не строка статуса |
+| `test_should_enable_translate_when_translation_finishes` | `tests/test_translation.py` | FT-031 | happy | success | блокировка снята после ответа |
+| `test_should_replace_previous_translation_when_user_translates_again` | `tests/test_translation.py` | FT-035; US-001 AC3 | happy | success | не конкатенация |
+| `test_should_keep_request_snapshot_when_fields_change_during_translation` | `tests/test_translation.py` | FT-011; NFT-014; A0052 | edge | loading | клик «Модель» не убивает перевод |
+| `test_should_post_chat_to_local_ollama_when_translating_fragment` | `tests/test_ollama_gateway.py` | FT-012; FT-013 | happy | — | MockTransport POST /api/chat |
