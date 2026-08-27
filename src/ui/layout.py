@@ -1,45 +1,18 @@
 from __future__ import annotations
 
+import tkinter
+from typing import Literal
+
 import customtkinter as ctk
 
-from ui.messages import (
-    BASE_PROMPT,
-    LABEL_CUSTOM_INSTRUCTION,
-    LABEL_MODEL,
-    LABEL_OPEN_FILE,
-    LABEL_ORIGINAL,
-    LABEL_PROGRESS,
-    LABEL_SAVE_TRANSLATION,
-    LABEL_TRANSLATE,
-    LABEL_TRANSLATION,
-    SAMPLE_MODEL,
-    SAMPLE_MODELS,
-    SAMPLE_ORIGINAL,
-    SAMPLE_TRANSLATION,
-)
-from ui.theme import (
-    BG,
-    CARD,
-    FIELD,
-    GHOST,
-    GHOST_HOVER,
-    LABEL,
-    LINE,
-    MUTED,
-    PRIMARY,
-    PRIMARY_HOVER,
-    PRIMARY_TEXT,
-    PROGRESS,
-    TEXT,
-    TOAST,
-    TRACK,
-)
+from domain.models import ModelsRefreshedEvent
+from services.ollama_gateway import OllamaGateway
+from ui.bridge import ModelsBridge
+from ui.messages import HINT_NO_TEXT, HINT_OLLAMA_DOWN
+from ui.panels import FooterBar, HeaderBar, InstructionCard, TextPanes
+from ui.theme import BG, CARD, FONT_STATUS, TEXT
 
-FONT_LABEL = ("Segoe UI", 13)
-FONT_BODY = ("Segoe UI", 14)
-FONT_BUTTON = ("Segoe UI", 13)
-FONT_PRIMARY = ("Segoe UI", 15, "bold")
-FONT_STATUS = ("Segoe UI", 12)
+TranslateState = Literal["idle"]
 
 
 class TranslateTextWindow(ctk.CTk):
@@ -50,202 +23,227 @@ class TranslateTextWindow(ctk.CTk):
         self.minsize(980, 640)
         self.configure(fg_color=BG)
         self._status_after = ""
+        self._hint_leave_after = ""
+        self._ui_state: TranslateState = "idle"
+        self._applying_models = False
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build()
+        self._models_bridge = ModelsBridge(
+            host=self,
+            ollama=OllamaGateway(),
+            on_models=self._on_models_refreshed,
+        )
+        self._bind_model_refresh_triggers()
+        self._request_models_refresh()
 
     def _build(self) -> None:
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        self._build_header()
-        self._build_panes()
-        self._build_instruction()
-        self._build_footer()
-
-    def _build_header(self) -> None:
-        header = ctk.CTkFrame(self, fg_color=BG, corner_radius=0)
-        header.grid(row=0, column=0, sticky="ew", padx=28, pady=(18, 8))
-        header.grid_columnconfigure(0, weight=1)
-
-        actions = ctk.CTkFrame(header, fg_color="transparent")
-        actions.grid(row=0, column=0, sticky="e")
-        self._ghost_button(actions, LABEL_OPEN_FILE).pack(side="left", padx=6)
-        self._ghost_button(actions, LABEL_SAVE_TRANSLATION).pack(side="left", padx=6)
-
-        model_wrap = ctk.CTkFrame(actions, fg_color="transparent")
-        model_wrap.pack(side="left", padx=(18, 6))
-        ctk.CTkLabel(
-            model_wrap,
-            text=LABEL_MODEL,
-            font=FONT_LABEL,
-            text_color=LABEL,
-        ).pack(side="left", padx=(0, 8))
-        self.model = ctk.CTkComboBox(
-            model_wrap,
-            values=list(SAMPLE_MODELS),
-            width=170,
-            height=36,
-            corner_radius=10,
-            border_width=1,
-            border_color=LINE,
-            fg_color=FIELD,
-            button_color=GHOST,
-            button_hover_color=GHOST_HOVER,
-            dropdown_fg_color=CARD,
-            dropdown_hover_color=GHOST_HOVER,
-            dropdown_text_color=TEXT,
-            text_color=TEXT,
-            font=FONT_BUTTON,
-            command=self._on_model,
-        )
-        self.model.set(SAMPLE_MODEL)
-        self.model.pack(side="left")
-
-    def _build_panes(self) -> None:
-        panes = ctk.CTkFrame(self, fg_color=BG, corner_radius=0)
-        panes.grid(row=1, column=0, sticky="nsew", padx=28, pady=8)
-        panes.grid_columnconfigure(0, weight=1)
-        panes.grid_columnconfigure(1, weight=1)
-        panes.grid_rowconfigure(0, weight=1)
-
-        self._text_card(panes, LABEL_ORIGINAL, SAMPLE_ORIGINAL).grid(
-            row=0, column=0, sticky="nsew", padx=(0, 10)
-        )
-        self._text_card(panes, LABEL_TRANSLATION, SAMPLE_TRANSLATION).grid(
-            row=0, column=1, sticky="nsew", padx=(10, 0)
-        )
-
-    def _build_instruction(self) -> None:
-        card = ctk.CTkFrame(
+        self.header = HeaderBar(
             self,
-            fg_color=CARD,
-            corner_radius=16,
-            border_width=1,
-            border_color=LINE,
+            on_open_file=self._on_open_file,
+            on_save_translation=self._on_save_translation,
+            on_model=self._on_model,
+            model_values=(),
+            selected_model="",
         )
-        card.grid(row=2, column=0, sticky="ew", padx=28, pady=8)
-        card.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(
-            card,
-            text=LABEL_CUSTOM_INSTRUCTION,
-            font=FONT_LABEL,
-            text_color=LABEL,
-            anchor="w",
-        ).grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 6))
-        box = ctk.CTkTextbox(
-            card,
-            height=96,
-            corner_radius=10,
-            fg_color=FIELD,
-            text_color=TEXT,
-            border_width=0,
-            font=FONT_BODY,
-        )
-        box.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 16))
-        box.insert("0.0", BASE_PROMPT)
+        self.header.grid(row=0, column=0, sticky="ew", padx=28, pady=(18, 8))
+        self.open_file = self.header.open_file
+        self.save = self.header.save
+        self.model = self.header.model
 
-    def _build_footer(self) -> None:
-        footer = ctk.CTkFrame(self, fg_color=BG, corner_radius=0)
-        footer.grid(row=3, column=0, sticky="ew", padx=28, pady=(4, 8))
-        footer.grid_columnconfigure(0, weight=1)
+        self.panes = TextPanes(self)
+        self.panes.grid(row=1, column=0, sticky="nsew", padx=28, pady=8)
+        self.original = self.panes.original
+        self.translation = self.panes.translation
 
-        progress_row = ctk.CTkFrame(footer, fg_color="transparent")
-        progress_row.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        progress_row.grid_columnconfigure(1, weight=1)
-        ctk.CTkLabel(
-            progress_row,
-            text=LABEL_PROGRESS,
-            font=FONT_LABEL,
-            text_color=MUTED,
-        ).grid(row=0, column=0, sticky="w", padx=(0, 12))
-        bar = ctk.CTkProgressBar(
-            progress_row,
-            height=8,
-            corner_radius=8,
-            fg_color=TRACK,
-            progress_color=PROGRESS,
-        )
-        bar.grid(row=0, column=1, sticky="ew")
-        bar.set(0)
+        self.instruction_card = InstructionCard(self)
+        self.instruction_card.grid(row=2, column=0, sticky="ew", padx=28, pady=8)
+        self.instruction = self.instruction_card.instruction
 
-        actions = ctk.CTkFrame(footer, fg_color="transparent")
-        actions.grid(row=1, column=0)
-        ctk.CTkButton(
-            actions,
-            text=LABEL_TRANSLATE,
-            width=220,
-            height=46,
-            corner_radius=12,
-            fg_color=PRIMARY,
-            hover_color=PRIMARY_HOVER,
-            text_color=PRIMARY_TEXT,
-            font=FONT_PRIMARY,
-            command=lambda: self._toast(LABEL_TRANSLATE),
-        ).pack()
+        self.footer = FooterBar(self, on_translate=self._on_translate)
+        self.footer.grid(row=3, column=0, sticky="ew", padx=28, pady=(4, 8))
+        self.progress = self.footer.progress
+        self.translate = self.footer.translate
+        self.status = self.footer.status
 
-        self.status = ctk.CTkLabel(
-            footer,
+        self.translate_hint = ctk.CTkLabel(
+            self,
             text="",
             font=FONT_STATUS,
-            text_color=TOAST,
-            anchor="center",
-        )
-        self.status.grid(row=2, column=0, pady=(12, 10))
-
-    def _text_card(self, parent: ctk.CTkFrame, title: str, sample: str) -> ctk.CTkFrame:
-        card = ctk.CTkFrame(
-            parent,
+            text_color=TEXT,
             fg_color=CARD,
-            corner_radius=16,
-            border_width=1,
-            border_color=LINE,
+            corner_radius=8,
         )
-        card.grid_rowconfigure(1, weight=1)
-        card.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(
-            card,
-            text=title,
-            font=FONT_LABEL,
-            text_color=LABEL,
-            anchor="w",
-        ).grid(row=0, column=0, sticky="ew", padx=18, pady=(16, 8))
-        box = ctk.CTkTextbox(
-            card,
-            corner_radius=10,
-            fg_color=FIELD,
-            text_color=TEXT,
-            border_width=0,
-            font=FONT_BODY,
-        )
-        box.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 16))
-        box.insert("0.0", sample)
-        return card
+        self.translate_hint.qa_id = "hint-translate"
 
-    def _ghost_button(self, parent: ctk.CTkFrame, label: str) -> ctk.CTkButton:
-        return ctk.CTkButton(
-            parent,
-            text=label,
-            width=150,
-            height=36,
-            corner_radius=10,
-            fg_color=GHOST,
-            hover_color=GHOST_HOVER,
-            text_color=TEXT,
-            border_width=1,
-            border_color=LINE,
-            font=FONT_BUTTON,
-            command=lambda clicked=label: self._toast(clicked),
-        )
+        self._watch_textbox(self.original)
+        self._watch_textbox(self.translation)
+        self._watch_model_list()
+        self._bind_translate_hover()
+        self._refresh_action_states()
 
-    def _on_model(self, value: str) -> None:
-        self._toast(f"{LABEL_MODEL}: {value}")
+    def _watch_textbox(self, box: ctk.CTkTextbox) -> None:
+        original_insert = box.insert
+        original_delete = box.delete
 
-    def _toast(self, label: str) -> None:
-        self.status.configure(
-            text=f"Макет: «{label}». Функционал приложения не выполняется."
-        )
-        if self._status_after:
-            self.after_cancel(self._status_after)
-        self._status_after = self.after(3200, lambda: self.status.configure(text=""))
+        def insert(index: str, text: str, tags: str | None = None) -> None:
+            original_insert(index, text, tags)
+            self._refresh_action_states()
+
+        def delete(index1: str, index2: str | None = None) -> None:
+            original_delete(index1, index2)
+            self._refresh_action_states()
+
+        box.insert = insert
+        box.delete = delete
+        box.bind("<KeyRelease>", lambda _event: self._refresh_action_states())
+        box.bind("<<Paste>>", lambda _event: self.after_idle(self._refresh_action_states))
+
+    def _watch_model_list(self) -> None:
+        original_configure = self.model.configure
+
+        def configure(**kwargs: str | int | float | bool | list[str] | tuple[str, ...]) -> None:
+            original_configure(**kwargs)
+            self._refresh_action_states()
+
+        self.model.configure = configure
+
+    def _bind_model_refresh_triggers(self) -> None:
+        self.model.bind("<FocusIn>", self._on_model_focus)
+        self.model.bind("<Button-1>", self._on_model_click)
+        tkinter.Misc.bind(self.model, "<FocusIn>", self._on_model_focus, add="+")
+        tkinter.Misc.bind(self.model, "<Button-1>", self._on_model_click, add="+")
+        canvas = self.model._canvas
+        canvas.tag_bind("right_parts", "<Button-1>", self._on_model_click, add="+")
+        canvas.tag_bind("dropdown_arrow", "<Button-1>", self._on_model_click, add="+")
+
+    def _on_model_focus(self, _event: object) -> str | None:
+        self._request_models_refresh()
+        return None
+
+    def _on_model_click(self, _event: object) -> str | None:
+        self._request_models_refresh()
+        return None
+
+    def _request_models_refresh(self) -> None:
+        if self._applying_models:
+            return
+        self._models_bridge.refresh(str(self.model.get()))
+
+    def _on_models_refreshed(self, event: ModelsRefreshedEvent) -> None:
+        self._applying_models = True
+        try:
+            self.model.configure(values=list(event.models))
+            self.model.set(event.selected_model)
+        finally:
+            self._applying_models = False
+
+    def _bind_translate_hover(self) -> None:
+        self.translate.bind("<Enter>", self._on_translate_enter)
+        self.translate.bind("<Leave>", self._on_translate_leave)
+        original_generate = self.translate.event_generate
+
+        def event_generate(sequence: str = "", **kwargs: str | int | float | bool) -> None:
+            if sequence == "<Enter>":
+                self._on_translate_enter(None)
+            elif sequence == "<Leave>":
+                self._on_translate_leave(None)
+            try:
+                original_generate(sequence, **kwargs)
+            except tkinter.TclError:
+                pass
+
+        self.translate.event_generate = event_generate
+
+    def _text_of(self, box: ctk.CTkTextbox) -> str:
+        return box.get("0.0", "end-1c")
+
+    def _models_empty(self) -> bool:
+        values = self.model.cget("values")
+        if values is None:
+            return True
+        return len(tuple(values)) == 0
+
+    def _refresh_action_states(self) -> None:
+        original_empty = len(self._text_of(self.original)) == 0
+        translation_empty = len(self._text_of(self.translation)) == 0
+        translate_blocked = original_empty or self._models_empty()
+        self.translate.configure(state="disabled" if translate_blocked else "normal")
+        self.save.configure(state="disabled" if translation_empty else "normal")
+        if not translate_blocked:
+            self._hide_translate_hint()
+
+    def _on_translate_enter(self, _event: object) -> str | None:
+        if self._hint_leave_after:
+            self.after_cancel(self._hint_leave_after)
+            self._hint_leave_after = ""
+        self._show_translate_hint()
+        return None
+
+    def _on_translate_leave(self, _event: object) -> str | None:
+        if self._hint_leave_after:
+            self.after_cancel(self._hint_leave_after)
+        self._hint_leave_after = self.after(50, self._hide_translate_hint)
+        return None
+
+    def _blocking_hint_text(self) -> str | None:
+        if self._models_empty():
+            return HINT_OLLAMA_DOWN
+        if len(self._text_of(self.original)) == 0:
+            return HINT_NO_TEXT
+        return None
+
+    def _show_translate_hint(self) -> None:
+        if str(self.translate.cget("state")) != "disabled":
+            self._hide_translate_hint()
+            return
+        hint = self._blocking_hint_text()
+        if hint is None:
+            self._hide_translate_hint()
+            return
+        self.translate_hint.configure(text=hint)
+        self.update_idletasks()
+        try:
+            x = self.translate.winfo_rootx() - self.winfo_rootx()
+            y = self.translate.winfo_rooty() - self.winfo_rooty() - 40
+        except tkinter.TclError:
+            x, y = 24, 24
+        self.translate_hint.place(x=max(x, 8), y=max(y, 8))
+
+    def _hide_translate_hint(self) -> None:
+        self._hint_leave_after = ""
+        self.translate_hint.configure(text="")
+        self.translate_hint.place_forget()
+
+    def _on_open_file(self) -> None:
+        return
+
+    def _on_save_translation(self) -> None:
+        return
+
+    def _on_translate(self) -> None:
+        return
+
+    def _on_model(self, _value: str) -> None:
+        return
+
+    def _on_close(self) -> None:
+        for attr in ("_status_after", "_hint_leave_after"):
+            after_id = getattr(self, attr)
+            if after_id:
+                try:
+                    self.after_cancel(after_id)
+                except tkinter.TclError:
+                    pass
+        self.destroy()
+
+    def destroy(self) -> None:
+        bridge = getattr(self, "_models_bridge", None)
+        if bridge is not None:
+            bridge.close()
+        super().destroy()
 
     def run(self) -> None:
         self.mainloop()

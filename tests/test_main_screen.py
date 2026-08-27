@@ -1,6 +1,7 @@
-"""Стартовый экран: подписи глоссария и поля Must UI, которые уже есть в макете."""
+"""Стартовый экран: подписи глоссария, пустые поля покоя и кастомная инструкция."""
 
 from ui.messages import (
+    BASE_PROMPT,
     LABEL_CUSTOM_INSTRUCTION,
     LABEL_MODEL,
     LABEL_OPEN_FILE,
@@ -10,10 +11,13 @@ from ui.messages import (
     LABEL_TRANSLATION,
 )
 
+from conftest import DEFAULT_FAKE_MODELS
 from ui_helpers import (
+    combo_values,
     find_by_text,
     find_progress_bar,
     find_textbox_for_label,
+    set_textbox_content,
     textbox_content,
 )
 
@@ -25,12 +29,6 @@ GLOSSARY_LABELS = (
     LABEL_CUSTOM_INSTRUCTION,
     LABEL_MODEL,
     LABEL_TRANSLATE,
-)
-
-GLOSSARY_BASE_PROMPT = (
-    "Ты профессиональный переводчик. Переведи текст с английского на русский. "
-    "Сохрани смысл, тон и разбиение на абзацы. Не добавляй комментарии, преамбулу "
-    "и кавычки вокруг перевода. В ответе только перевод."
 )
 
 
@@ -62,16 +60,17 @@ def test_should_show_base_prompt_when_user_has_not_replaced_instruction(window):
     """FT-008, happy: в кастомной инструкции базовый промпт переводчика."""
     box = find_textbox_for_label(window, LABEL_CUSTOM_INSTRUCTION)
     assert box is not None, "есть поле Кастомная инструкция"
-    assert textbox_content(box) == GLOSSARY_BASE_PROMPT, (
+    assert textbox_content(box) == BASE_PROMPT, (
         "в Кастомной инструкции показан базовый промпт переводчика"
     )
 
 
 def test_should_show_model_list_when_window_opens(window):
-    """FT-005, happy: на экране есть список «Модель»."""
+    """FT-005, FT-045, happy: при старте список «Модель» совпадает с ответом API."""
     assert window.model is not None, "есть список Модель"
-    values = window.model.cget("values")
-    assert values is not None, "список Модель содержит значения"
+    assert combo_values(window.model) == DEFAULT_FAKE_MODELS, (
+        "при старте список Модель показывает все имена ответа локального API"
+    )
 
 
 def test_should_show_progress_indicator_at_zero_when_window_opens(window):
@@ -79,3 +78,28 @@ def test_should_show_progress_indicator_at_zero_when_window_opens(window):
     bar = find_progress_bar(window)
     assert bar is not None, "есть индикатор прогресса"
     assert bar.get() == 0, "индикатор прогресса показывает 0 % до перевода"
+
+
+def test_should_show_empty_original_when_window_opens(window):
+    """FT-001, empty: рабочее состояние покоя — «Оригинальный текст» длины 0."""
+    box = find_textbox_for_label(window, LABEL_ORIGINAL)
+    assert box is not None, "есть поле Оригинальный текст"
+    assert textbox_content(box) == "", "при старте Оригинальный текст пуст"
+
+
+def test_should_show_empty_translation_when_window_opens(window):
+    """FT-002, empty: рабочее состояние покоя — «Русский перевод» длины 0."""
+    box = find_textbox_for_label(window, LABEL_TRANSLATION)
+    assert box is not None, "есть поле Русский перевод"
+    assert textbox_content(box) == "", "при старте Русский перевод пуст"
+
+
+def test_should_keep_replaced_instruction_when_user_edits_field(window):
+    """FT-008, happy: Пользователь заменяет базовый промпт своим текстом."""
+    box = find_textbox_for_label(window, LABEL_CUSTOM_INSTRUCTION)
+    assert box is not None, "есть поле Кастомная инструкция"
+    set_textbox_content(box, "Пиши короче.")
+    window.update_idletasks()
+    assert textbox_content(box) == "Пиши короче.", (
+        "в Кастомной инструкции остаётся текст, которым Пользователь заменил базовый промпт"
+    )

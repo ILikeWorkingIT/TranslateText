@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-import customtkinter as ctk
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,21 +10,72 @@ for path in (SRC, TESTS):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from ui.layout import TranslateTextWindow
+from domain.errors import OllamaUnavailableError
+from ui_helpers import (
+    WorkerAfterMixin,
+    combo_values,
+    patch_combobox_event_generate,
+    pump_until,
+)
+
+DEFAULT_FAKE_MODELS = ("llama3.2", "qwen2.5:3b")
+
+
+class RecordingOllama:
+    def __init__(self, names: tuple[str, ...]) -> None:
+        self.names = names
+        self.list_calls = 0
+
+    def list_models(self) -> tuple[str, ...]:
+        self.list_calls += 1
+        if not self.names:
+            raise OllamaUnavailableError("empty model list")
+        return tuple(self.names)
+
+    def translate_fragment(
+        self, *, model: str, instruction: str, source: str
+    ) -> str:
+        raise NotImplementedError
+
+    def close(self) -> None:
+        return
 
 
 @pytest.fixture
-def window():
-    ctk.set_appearance_mode("dark")
-    ctk.set_default_color_theme("blue")
-    app = TranslateTextWindow()
-    app.withdraw()
-    app.update_idletasks()
-    yield app
-    after_id = getattr(app, "_status_after", "")
-    if after_id:
-        try:
-            app.after_cancel(after_id)
-        except Exception:
-            pass
-    app.destroy()
+def open_window(monkeypatch):
+    from ui.layout import TranslateTextWindow
+
+    class HarnessWindow(WorkerAfterMixin, TranslateTextWindow):
+        def __init__(self) -> None:
+            super().__init__()
+            patch_combobox_event_generate(self)
+
+    apps = []
+
+    def _open(names: tuple[str, ...]):
+        port = RecordingOllama(names)
+        monkeypatch.setattr("ui.layout.OllamaGateway", lambda: port)
+        app = HarnessWindow()
+        apps.append(app)
+        app.withdraw()
+        app.update_idletasks()
+        if names:
+            pump_until(app, lambda: combo_values(app.model) == names)
+        return app, port
+
+    yield _open
+    for app in apps:
+        for attr in ("_status_after", "_hint_leave_after"):
+            after_id = getattr(app, attr, "")
+            if after_id:
+                try:
+                    app.after_cancel(after_id)
+                except Exception:
+                    pass
+        app.destroy()
+
+
+@pytest.fixture
+def window(open_window):
+    app, _port = open_window(DEFAULT_FAKE_MODELS)
+    return app
