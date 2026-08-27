@@ -3,6 +3,7 @@
 from ui.messages import (
     BASE_PROMPT,
     LABEL_CUSTOM_INSTRUCTION,
+    LABEL_DIRECTION,
     LABEL_MODEL,
     LABEL_OPEN_FILE,
     LABEL_ORIGINAL,
@@ -26,6 +27,7 @@ GLOSSARY_LABELS = (
     LABEL_SAVE_TRANSLATION,
     LABEL_ORIGINAL,
     LABEL_TRANSLATION,
+    LABEL_DIRECTION,
     LABEL_CUSTOM_INSTRUCTION,
     LABEL_MODEL,
     LABEL_TRANSLATE,
@@ -33,7 +35,7 @@ GLOSSARY_LABELS = (
 
 
 def test_should_show_all_glossary_labels_when_window_opens(window):
-    """NFT-006, happy: на главном экране все 7 подписей глоссария."""
+    """NFT-006, happy: на главном экране все 8 подписей глоссария (A0120, A0121)."""
     missing = [label for label in GLOSSARY_LABELS if find_by_text(window, label) is None]
     assert missing == [], "на главном экране есть все подписи глоссария"
 

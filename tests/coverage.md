@@ -2,20 +2,27 @@
 
 Поверхность: desktop (CustomTkinter). Раннер: pytest. Прогон — команда `/use-tests`.
 
-Срез S-01: подписи, пустые поля, блокировки. Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
+Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
 
 | Тест | Файл | Требования | Слой | Состояние UI | Примечание |
 | --- | --- | --- | --- | --- | --- |
-| `test_should_show_all_glossary_labels_when_window_opens` | `tests/test_main_screen.py` | NFT-006 | happy | — | 7 подписей глоссария |
+| `test_should_show_all_glossary_labels_when_window_opens` | `tests/test_main_screen.py` | NFT-006; A0120; A0121 | happy | — | 8 подписей, в т.ч. «Направление перевода»; при EN→RU видна «Русский перевод» |
 | `test_should_show_original_text_field_when_window_opens` | `tests/test_main_screen.py` | FT-001 | happy | — | поле есть |
 | `test_should_show_translation_field_when_window_opens` | `tests/test_main_screen.py` | FT-002 | happy | — | поле есть |
 | `test_should_show_custom_instruction_field_when_window_opens` | `tests/test_main_screen.py` | FT-007 | happy | — | поле есть |
-| `test_should_show_base_prompt_when_user_has_not_replaced_instruction` | `tests/test_main_screen.py` | FT-008; US-005 AC1 | happy | — | текст из глоссария |
+| `test_should_show_base_prompt_when_user_has_not_replaced_instruction` | `tests/test_main_screen.py` | FT-008; US-005 AC1 | happy | — | текст A0006 при EN→RU |
 | `test_should_show_model_list_when_window_opens` | `tests/test_main_screen.py` | FT-005; FT-045 | happy | — | старт: список = ответ фейк-API |
 | `test_should_show_progress_indicator_at_zero_when_window_opens` | `tests/test_main_screen.py` | FT-022 | empty | empty | 0 % до запуска перевода |
 | `test_should_show_empty_original_when_window_opens` | `tests/test_main_screen.py` | FT-001 | empty | empty | длина 0 при старте |
 | `test_should_show_empty_translation_when_window_opens` | `tests/test_main_screen.py` | FT-002 | empty | empty | длина 0 при старте |
 | `test_should_keep_replaced_instruction_when_user_edits_field` | `tests/test_main_screen.py` | FT-008 | happy | — | замена базового промпта |
+| `test_should_select_en_ru_when_window_opens` | `tests/test_direction.py` | FT-051; A0120 | happy | — | умолчание EN→RU |
+| `test_should_offer_only_en_ru_and_ru_en_when_window_opens` | `tests/test_direction.py` | FT-051; A0120 | happy | — | значения списка |
+| `test_should_show_ru_en_base_prompt_when_direction_changes_and_instruction_is_base` | `tests/test_direction.py` | FT-052; A0123 | happy | — | подстановка A0122 |
+| `test_should_keep_custom_instruction_when_direction_changes` | `tests/test_direction.py` | FT-052; A0123 | edge | — | своя инструкция не затирается |
+| `test_should_show_english_translation_label_when_direction_is_ru_en` | `tests/test_direction.py` | FT-002; FT-053; A0121 | happy | — | одна подпись «Английский перевод» |
+| `test_should_keep_translation_text_when_direction_changes` | `tests/test_direction.py` | FT-053; A0124 | happy | — | текст поля не очищается |
+| `test_should_not_show_ollama_status_when_only_direction_changes` | `tests/test_direction.py` | FT-053; A0124 | negative | — | нет предупреждения FT-032 в статусе |
 | `test_should_disable_translate_when_original_is_empty` | `tests/test_blocking.py` | FT-026; US-001 AC4 | negative | disabled | |
 | `test_should_enable_translate_when_original_has_text` | `tests/test_blocking.py` | FT-026 | happy | — | до FT-048 / S-03 |
 | `test_should_enable_translate_when_original_is_only_spaces` | `tests/test_blocking.py` | FT-026 | edge | — | пусто = длина 0 |

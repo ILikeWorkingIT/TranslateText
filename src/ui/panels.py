@@ -5,8 +5,10 @@ from collections.abc import Callable
 import customtkinter as ctk
 
 from ui.messages import (
-    BASE_PROMPT,
+    DIRECTION_EN_RU,
+    DIRECTION_VALUES,
     LABEL_CUSTOM_INSTRUCTION,
+    LABEL_DIRECTION,
     LABEL_MODEL,
     LABEL_OPEN_FILE,
     LABEL_ORIGINAL,
@@ -73,7 +75,7 @@ def _text_card(
     *,
     title: str,
     qa_id: str,
-) -> tuple[ctk.CTkFrame, ctk.CTkTextbox]:
+) -> tuple[ctk.CTkFrame, ctk.CTkLabel, ctk.CTkTextbox]:
     card = ctk.CTkFrame(
         parent,
         fg_color=CARD,
@@ -83,13 +85,14 @@ def _text_card(
     )
     card.grid_rowconfigure(1, weight=1)
     card.grid_columnconfigure(0, weight=1)
-    ctk.CTkLabel(
+    title_label = ctk.CTkLabel(
         card,
         text=title,
         font=FONT_LABEL,
         text_color=LABEL,
         anchor="w",
-    ).grid(row=0, column=0, sticky="ew", padx=18, pady=(16, 8))
+    )
+    title_label.grid(row=0, column=0, sticky="ew", padx=18, pady=(16, 8))
     box = ctk.CTkTextbox(
         card,
         corner_radius=10,
@@ -100,7 +103,7 @@ def _text_card(
     )
     box.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 16))
     _set_qa_id(box, qa_id)
-    return card, box
+    return card, title_label, box
 
 
 class HeaderBar(ctk.CTkFrame):
@@ -111,8 +114,10 @@ class HeaderBar(ctk.CTkFrame):
         on_open_file: Callable[[], None],
         on_save_translation: Callable[[], None],
         on_model: Callable[[str], None],
+        on_direction: Callable[[str], None],
         model_values: tuple[str, ...],
         selected_model: str,
+        selected_direction: str,
     ) -> None:
         super().__init__(master, fg_color=BG, corner_radius=0)
         self.grid_columnconfigure(0, weight=1)
@@ -133,6 +138,37 @@ class HeaderBar(ctk.CTkFrame):
             qa_id="btn-save-translation",
         )
         self.save.pack(side="left", padx=6)
+
+        direction_wrap = ctk.CTkFrame(actions, fg_color="transparent")
+        direction_wrap.pack(side="left", padx=(18, 6))
+        ctk.CTkLabel(
+            direction_wrap,
+            text=LABEL_DIRECTION,
+            font=FONT_LABEL,
+            text_color=LABEL,
+        ).pack(side="left", padx=(0, 8))
+        self.direction = ctk.CTkComboBox(
+            direction_wrap,
+            values=list(DIRECTION_VALUES),
+            width=110,
+            height=36,
+            corner_radius=10,
+            border_width=1,
+            border_color=LINE,
+            fg_color=FIELD,
+            button_color=GHOST,
+            button_hover_color=GHOST_HOVER,
+            dropdown_fg_color=CARD,
+            dropdown_hover_color=GHOST_HOVER,
+            dropdown_text_color=TEXT,
+            text_color=TEXT,
+            font=FONT_BUTTON,
+            command=on_direction,
+            state="readonly",
+        )
+        self.direction.set(selected_direction or DIRECTION_EN_RU)
+        self.direction.pack(side="left")
+        _set_qa_id(self.direction, "combo-direction")
 
         model_wrap = ctk.CTkFrame(actions, fg_color="transparent")
         model_wrap.pack(side="left", padx=(18, 6))
@@ -172,18 +208,21 @@ class TextPanes(ctk.CTkFrame):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        original_card, self.original = _text_card(
+        original_card, _original_title, self.original = _text_card(
             self, title=LABEL_ORIGINAL, qa_id="field-original"
         )
         original_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
-        translation_card, self.translation = _text_card(
+        translation_card, self.translation_title, self.translation = _text_card(
             self, title=LABEL_TRANSLATION, qa_id="field-translation"
         )
         translation_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 
+    def set_translation_title(self, title: str) -> None:
+        self.translation_title.configure(text=title)
+
 
 class InstructionCard(ctk.CTkFrame):
-    def __init__(self, master: ctk.CTk) -> None:
+    def __init__(self, master: ctk.CTk, *, initial_prompt: str) -> None:
         super().__init__(
             master,
             fg_color=CARD,
@@ -209,7 +248,7 @@ class InstructionCard(ctk.CTkFrame):
             font=FONT_BODY,
         )
         self.instruction.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 16))
-        self.instruction.insert("0.0", BASE_PROMPT)
+        self.instruction.insert("0.0", initial_prompt)
         _set_qa_id(self.instruction, "field-instruction")
 
 

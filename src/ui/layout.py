@@ -8,7 +8,14 @@ import customtkinter as ctk
 from domain.models import ModelsRefreshedEvent
 from services.ollama_gateway import OllamaGateway
 from ui.bridge import ModelsBridge
-from ui.messages import HINT_NO_TEXT, HINT_OLLAMA_DOWN, STATUS_OLLAMA_UNAVAILABLE
+from ui.messages import (
+    DIRECTION_EN_RU,
+    HINT_NO_TEXT,
+    HINT_OLLAMA_DOWN,
+    STATUS_OLLAMA_UNAVAILABLE,
+    base_prompt_for_direction,
+    translation_label_for_direction,
+)
 from ui.panels import FooterBar, HeaderBar, InstructionCard, TextPanes
 from ui.theme import BG, CARD, FONT_STATUS, TEXT
 
@@ -28,6 +35,7 @@ class TranslateTextWindow(ctk.CTk):
         self._ui_state: TranslateState = "idle"
         self._applying_models = False
         self._ollama_availability: OllamaAvailability = "unknown"
+        self._direction = DIRECTION_EN_RU
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build()
         self._models_bridge = ModelsBridge(
@@ -48,20 +56,26 @@ class TranslateTextWindow(ctk.CTk):
             on_open_file=self._on_open_file,
             on_save_translation=self._on_save_translation,
             on_model=self._on_model,
+            on_direction=self._on_direction,
             model_values=(),
             selected_model="",
+            selected_direction=self._direction,
         )
         self.header.grid(row=0, column=0, sticky="ew", padx=28, pady=(18, 8))
         self.open_file = self.header.open_file
         self.save = self.header.save
         self.model = self.header.model
+        self.direction = self.header.direction
 
         self.panes = TextPanes(self)
         self.panes.grid(row=1, column=0, sticky="nsew", padx=28, pady=8)
         self.original = self.panes.original
         self.translation = self.panes.translation
 
-        self.instruction_card = InstructionCard(self)
+        self.instruction_card = InstructionCard(
+            self,
+            initial_prompt=base_prompt_for_direction(self._direction),
+        )
         self.instruction_card.grid(row=2, column=0, sticky="ew", padx=28, pady=8)
         self.instruction = self.instruction_card.instruction
 
@@ -175,6 +189,11 @@ class TranslateTextWindow(ctk.CTk):
     def _text_of(self, box: ctk.CTkTextbox) -> str:
         return box.get("0.0", "end-1c")
 
+    def _set_instruction_text(self, value: str) -> None:
+        self.instruction.delete("0.0", "end")
+        if value:
+            self.instruction.insert("0.0", value)
+
     def _models_empty(self) -> bool:
         values = self.model.cget("values")
         if values is None:
@@ -262,6 +281,17 @@ class TranslateTextWindow(ctk.CTk):
 
     def _on_model(self, _value: str) -> None:
         return
+
+    def _on_direction(self, value: str) -> None:
+        previous = self._direction
+        if value == previous:
+            return
+        previous_prompt = base_prompt_for_direction(previous)
+        next_prompt = base_prompt_for_direction(value)
+        if self._text_of(self.instruction) == previous_prompt:
+            self._set_instruction_text(next_prompt)
+        self._direction = value
+        self.panes.set_translation_title(translation_label_for_direction(value))
 
     def _on_close(self) -> None:
         for attr in ("_status_after", "_hint_leave_after"):
