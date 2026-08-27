@@ -1,15 +1,16 @@
 # Реестр User Stories TranslateText
 
-Статус пакета: **Черновик, требует согласования** (US-006 заменена, `A0096`)  
+Статус пакета: **Согласовано** (`A0088`; актуализирован после US-006 — `A0096`–`A0114`; DDD — `A0116`–`A0118`)  
 Роли и права: `list-us.md`
 
 ## Источники правды
 
 - `documentation/Specification.md`
-- `requirements/glossary.md`
+- `requirements/glossary.md` (`A0117`)
 - `requirements/functional-requirements.md` (согласованные ФТ, `A0108`)
 - `requirements/non-functional-requirements.md` (согласованные НФТ, `A0109`)
-- `requirements/answers-project.md` (`A0001`–`A0115`)
+- `requirements/domain-model.md` (`A0116`), `requirements/data-dictionary.md` (`A0118`)
+- `requirements/answers-project.md` (`A0001`–`A0118`)
 
 ## Истории
 
@@ -77,7 +78,7 @@
 
 ## Итог самопроверки при написании (§8 skill-us)
 
-Замечаний-блокеров нет. Открытых вопросов по US нет. Исправлено сразу: `A0082`; AC5 US-008; US-008 в «готово». Желательное: новые ФТ по блокировке и подсказкам ещё не в таблице — нужен `/ft`.
+Замечаний-блокеров нет. Открытых вопросов по US нет. Исправлено сразу: `A0082`; AC5 US-008; US-008 в «готово». Блокировки и подсказки FT-048…FT-050 — в согласованных ФТ (`A0108`).
 
 Это не отчёт `/qc-us-uc`.
 
@@ -89,4 +90,4 @@
 
 ## Рекомендуемый следующий шаг
 
-Пересогласовать пакет DDD (глоссарий, доменная модель, словарь данных) после `A0096`–`A0107` — отдельное решение по всему MVP (QC FT/NFT №5).
+Разработка MVP по `reports/checklist.md`: срез **S-01** (`/frontend`). После среза — `/new-tests`, затем `/use-tests`.

@@ -2,9 +2,9 @@
 
 Статус: **Обработано**  
 Дата: 2026-08-27  
-Проверены: `requirements/functional-requirements.md`, `requirements/non-functional-requirements.md`, `requirements/answers-project.md` (`A0001`–`A0115`), `requirements/glossary.md`, `requirements/domain-model.md`, `requirements/data-dictionary.md`, `requirements/user-stories/us-006-unsaved-translation-warning.md`, `requirements/use-cases/uc-006-unsaved-translation-warning.md`, `reports/checklist.md`, `documentation/Specification.md`.
+Проверены: `requirements/functional-requirements.md`, `requirements/non-functional-requirements.md`, `requirements/answers-project.md` (`A0001`–`A0118`), `requirements/glossary.md`, `requirements/domain-model.md`, `requirements/data-dictionary.md`, `requirements/user-stories/us-006-unsaved-translation-warning.md`, `requirements/use-cases/uc-006-unsaved-translation-warning.md`, `reports/checklist.md`, `documentation/Specification.md`.
 
-Контекст: US-006 / UC-006 согласованы (`A0096`–`A0100`); прогон QC FT/NFT от 2026-08-27 (после обработки A0101–A0107) закрыт.
+Контекст: US-006 / UC-006 согласованы (`A0096`–`A0100`); прогон QC FT/NFT от 2026-08-27 (после обработки A0101–A0107) закрыт. DDD-пакет согласован отдельно (`A0116`–`A0118`, 2026-08-27).
 
 ## Итог обработки (A0108–A0115)
 
@@ -14,7 +14,7 @@
 | 2 | A0110 | `diagrams/diagram-mermaid-001.md` перерисована под UC-006 (два include). |
 | 3 | A0111 | `us-006-autosave.md` и `uc-006-autosave.md` удалены (файлов уже не было в репозитории). |
 | 4 | A0112 | Галочка «Автосохранение» убрана из `src/ui`, тестов, `rule-python.mdc`. |
-| 5 | A0113 | Глоссарий, domain-model, data-dictionary остаются «Черновик» до решения по всему MVP. |
+| 5 | A0113 | Глоссарий, domain-model, data-dictionary оставались «Черновик» до решения по MVP (на момент прогона). | Заменено: **Согласовано** — `A0116`, `A0117`, `A0118`. |
 | 6 | A0114 | UC-001 шаг 3 и UC-005 §5.1: порядок FT-032 → FT-029 (`A0102`). |
 | 7 | A0115 | Обновлены `skill-frontend-developer.md`, `skill-app-layer.md`, `app-layer.md`, `list-commands.md`. |
 
@@ -28,7 +28,7 @@
 | 2 | Важный | противоречие | diagram-mermaid-001 | Диаграмма описывает автосохранение. | Пометить устаревшим или перерисовать. | Согласен | A0110 |
 | 3 | Важный | противоречие | us-006-autosave.md | Дубликат US-006. | Удалить. | удалить | A0111 |
 | 4 | Важный | конфликт ФТ↔реализация | src/ui; NFT-006 | Галочка автосохранения в коде. | Убрать из UI и тестов. | согласен | A0112 |
-| 5 | Желательный | форма | glossary; DDD | Статус «Черновик» при синхронном содержании. | Оставить черновик до решения по MVP. | оставить черновик | A0113 |
+| 5 | Желательный | форма | glossary; DDD | Статус «Черновик» при синхронном содержании. | Оставить черновик до решения по MVP. | оставить черновик | A0113 → A0116–A0118 |
 | 6 | Желательный | неполнота | UC-001; UC-005; A0102 | Порядок FT-032 → FT-029. | Фраза в UC. | Согласен | A0114 |
 | 7 | Желательный | форма | skill-frontend; list-commands | Скиллы упоминают автосохранение. | Обновить скиллы. | Согласен | A0115 |
 

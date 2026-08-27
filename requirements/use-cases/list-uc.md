@@ -1,16 +1,17 @@
 # Реестр Use Cases TranslateText
 
-Статус пакета: **Черновик, требует согласования** (US-006 / UC-006 заменены, `A0096`)  
+Статус пакета: **Согласовано** (`A0089`; актуализирован после US-006 — `A0096`–`A0114`; DDD — `A0116`–`A0118`)  
 Дата: 2026-08-27  
 Роли: `requirements/user-stories/list-us.md` (Пользователь — primary; Ollama — системный участник)
 
 ## Источники правды
 
 - `documentation/Specification.md`
-- `requirements/glossary.md`
+- `requirements/glossary.md` (`A0117`)
 - `requirements/functional-requirements.md` (согласованные ФТ, `A0108`)
 - `requirements/non-functional-requirements.md` (согласованные НФТ, `A0109`)
-- `requirements/answers-project.md` (`A0001`–`A0115`)
+- `requirements/domain-model.md` (`A0116`), `requirements/data-dictionary.md` (`A0118`)
+- `requirements/answers-project.md` (`A0001`–`A0118`)
 - `requirements/user-stories/` (US-001 … US-008)
 
 Декомпозиция: **1:1 к пакету User Stories**. UC-006 — subfunction (include из UC-001 и UC-002). UC-007 — extension UC-001 и UC-004. UC-008 — user goal; вызывается при заблокированной «Перевести» из UC-001 / UC-007.
@@ -116,6 +117,7 @@ flowchart LR
 | QC US/UC (4) №1 (FT-049 в UC-001) | A0083 |
 | QC US/UC (4) №2 (UC-008 E2) | A0084 |
 | QC US/UC (4) №3 (поток UC-008) | A0085 |
+| QC FT/NFT (порядок FT-032 → FT-029 в UC-001 / UC-005) | A0114 |
 
 Выбор модели при старте ранее закрыт как `A0045` (из Q-US-1) и отражён в UC-004.
 
@@ -138,4 +140,4 @@ flowchart LR
 
 ## Рекомендуемый следующий шаг
 
-Пересогласовать пакет DDD после `A0096`–`A0107`. При правках UC по порядку диалогов — `/qc-us-uc`.
+Разработка MVP по `reports/checklist.md`: срез **S-01** (`/frontend`). После среза — `/new-tests`, затем `/use-tests`.

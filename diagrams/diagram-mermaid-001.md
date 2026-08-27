@@ -1,7 +1,7 @@
 # Sequence: предупреждение о несохранённом переводе (UC-006)
 
 **Тип:** sequenceDiagram  
-**Статус:** Черновик, требует согласования  
+**Статус:** Согласовано (`A0110`; DDD — `A0116`–`A0118`)  
 **ID файла:** `diagram-mermaid-001`
 
 ## Источники
@@ -10,8 +10,8 @@
 - `requirements/use-cases/uc-001-translate-text.md` (include шаг 2; порядок FT-032 → FT-029, `A0102`)
 - `requirements/use-cases/uc-002-open-file.md` (include шаг 2; шаги 3–6 после подтверждения)
 - `requirements/functional-requirements.md`: FT-032, FT-033, FT-003, FT-035, FT-039, FT-047
-- `requirements/glossary.md`: Пользователь, TranslateText, несохранённый перевод
-- `requirements/answers-project.md`: `A0096`–`A0100`, `A0102`
+- `requirements/glossary.md` (`A0117`)
+- `requirements/answers-project.md`: `A0096`–`A0100`, `A0102`, `A0116`–`A0118`
 
 ## Граница процесса
 

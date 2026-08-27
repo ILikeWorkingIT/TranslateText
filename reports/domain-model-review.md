@@ -4,9 +4,9 @@
 Дата: 2026-08-27  
 Режим: самостоятельный `/qc-ddd` → перенос §4 по согласию заказчика  
 Объект: `requirements/domain-model.md`  
-Источники: `requirements/glossary.md`, `requirements/functional-requirements.md` (FT-001…FT-050, снятые FT-034…040), `requirements/non-functional-requirements.md` (граница домена), `requirements/data-dictionary.md`, `requirements/use-cases/` (UC-001, UC-002, UC-003, UC-006), `requirements/user-stories/`, `requirements/answers-project.md` (`A0001`–`A0100`, в т.ч. `A0096`–`A0100`, `A0102`, `A0106`).
+Источники: `requirements/glossary.md`, `requirements/functional-requirements.md` (FT-001…FT-050, снятые FT-034…040), `requirements/non-functional-requirements.md` (граница домена), `requirements/data-dictionary.md` (`A0118`), `requirements/use-cases/`, `requirements/user-stories/`, `requirements/answers-project.md` (`A0001`–`A0118`).
 
-Контекст: модель обновлена после замены US-006 (автосохранение → предупреждение о несохранённом переводе): `translationSaved`, инварианты FT-032/FT-033, события `UnsavedTranslationWarning*`. Статус модели — черновик.
+Контекст: модель обновлена после замены US-006 (автосохранение → предупреждение о несохранённом переводе): `translationSaved`, инварианты FT-032/FT-033, события `UnsavedTranslationWarning*`. Статус модели — **Согласовано** (`A0116`); §4 перенесён в файл модели.
 
 ## 1. Анализ критических ошибок (Архитектурные нарушения DDD)
 
