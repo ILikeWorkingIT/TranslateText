@@ -13,8 +13,8 @@
 | `/qc-us-uc` | `.cursor/commands/qc-us-uc.md` | Проверить качество US и UC по `.cursor/skills/skill-quality-control-us-uc.md` |
 | `/diagram-bpmn` | `.cursor/commands/diagram-bpmn.md` | Моделировать бизнес-процесс в BPMN 2.0 для bpmn.io по `.cursor/skills/skill-diagram-bpmn.md` |
 | `/diagram-mermaid` | `.cursor/commands/diagram-mermaid.md` | Mermaid: flowchart, DFD, classDiagram, sequenceDiagram, C4 по `.cursor/skills/skill-diagram-mermaid.md` (sequence: guardrails §4.6 до Mermaid) |
-| `/ddd` | `.cursor/commands/ddd.md` | Доменная модель (DDD) по `.cursor/skills/skill-ddd.md`; в конце обязательно ревью `.cursor/skills/skill-review-ddd.md` |
-| `/review-ddd` | `.cursor/commands/review-ddd.md` | Критический аудит DDD-модели по `.cursor/skills/skill-review-ddd.md` (самостоятельный режим: только отчёт) |
+| `/ddd` | `.cursor/commands/ddd.md` | Доменная модель (DDD) по `.cursor/skills/skill-ddd.md`; в конце обязательно QC `.cursor/skills/skill-quality-control-ddd.md` |
+| `/qc-ddd` | `.cursor/commands/qc-ddd.md` | Контроль качества DDD-модели по `.cursor/skills/skill-quality-control-ddd.md` (самостоятельный режим: отчёт; перенос §4 — по согласию) |
 | `/data-dictionary` | `.cursor/commands/data-dictionary.md` | Словарь данных (поля, типы, ограничения, MVP) по `.cursor/skills/skill-data-dictionary.md`; после записи файла обязателен гейт проверки до отчёта |
 | `/ui-prototyping` | `.cursor/commands/ui-prototyping.md` | Макет окна приложения: вид и клики, не сайт и не рабочий функционал; скилл `.cursor/skills/skill-ui-prototyping.md` |
 | `/frontend` | `.cursor/commands/frontend.md` | Рабочий desktop UI (customtkinter, тема, стейт) по `.cursor/skills/skill-frontend-developer.md`; макет без функционала — `/ui-prototyping` |
@@ -39,7 +39,29 @@
 
 Для `/qc-us-uc`: «проверь и исправь» в одном запросе — сначала отчёт, сразу правятся только пункты типа «Исправление» (данных в источниках уже достаточно). Строки-вопросы без ответа догадкой не закрываются.
 
-Если в одном сообщении и «проверь», и ответы — сначала перенос ответов, новый полный аудит сам не начинается. Новый QC — только по явной просьбе или если появились новые требования / истории / сценарии сверх того отчёта.
+## Режимы `/qc-ddd`
+
+Отдельной подкоманды нет: режим выбирается по содержимому запроса.
+
+**Отчёт без правок** — типично пустой `/qc-ddd`, «проверь модель», «аудит DDD». Агент пишет отчёт в `reports/domain-model-review.md`, файл модели не меняет.
+
+**Перенос §4** — «примени §4», «согласен», ответы по дополнениям отчёта. Агент переносит инварианты и правки служб в `requirements/domain-model.md`; повторный QC по тем же правкам не предлагает.
+
+Заключительный этап `/ddd` — режим «после /ddd» в том же скилле; отдельный `/qc-ddd` для этого не нужен.
+
+Если в одном сообщении и «проверь», и «примени §4» — сначала перенос §4, новый полный аудит сам не начинается.
+
+## Режимы `/data-dictionary`
+
+Отдельной подкоманды нет: режим выбирается по содержимому запроса.
+
+**Создание / обновление** — типично `/data-dictionary` или «обнови словарь по модели». Агент пишет или правит `requirements/data-dictionary.md` по списку классов из доменной модели или class diagram; после записи обязателен гейт §7 скилла.
+
+**Только проверка** — «проверь словарь» без правок по запросу, или с правками дефектов гейта в том же файле.
+
+**Перенос ответов** — ответы по DD-Q или «согласен» по пунктам словаря: правки файла и `Axxxx` в базе ответов, затем один гейт §7.
+
+Нет доменной модели и class diagram — не выдумывать сущности; предложить сначала `/ddd` или диаграмму классов.
 
 ## Режимы `/new-tests`
 
@@ -91,9 +113,9 @@
 
 Отдельной подкоманды нет: режим выбирается по содержимому запроса.
 
-**Фича** — реализовать службу или use case по ФТ (нарезка, клиент Ollama, парсинг файлов, автосохранение, очередь). Агент пишет `src/domain/`, `src/services/`, `src/use_cases/`. В UI — только `src/ui/bridge.py` (поток + `after`), без перерисовки окна. Unit-тесты служб без GUI — в том же ходе, до клея. `/use-tests` не запускает.
+**Фича** — реализовать службу или use case по ФТ (нарезка, клиент Ollama, парсинг файлов, предупреждение о несохранённом переводе FT-032, очередь). Агент пишет `src/domain/`, `src/services/`, `src/use_cases/`. В UI — только `src/ui/bridge.py` (поток + `after`), без перерисовки окна. Unit-тесты служб без GUI — в том же ходе, до клея. `/use-tests` не запускает.
 
-**Баг** — таймаут, гонка `request_id`, битый файл, лимит имён `output`, инвариант очереди. Минимальный дифф по канону.
+**Баг** — таймаут, гонка `request_id`, битый файл, сбой экспорта, инвариант очереди. Минимальный дифф по канону.
 
 Свой HTTP-сервер, FastAPI, Flask, облако — отказ. Виджеты и тема — `/frontend`. Макет — `/ui-prototyping`. Только прогон — `/use-tests`.
 

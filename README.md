@@ -44,7 +44,7 @@
 - `documentation/other-description.md` — среда Ollama на этой машине (адрес, Docker, модель, CPU/GPU).
 - `documentation/project-structure-v1-1.md` — структура папок и правила именования (синхронизируется с `.cursor/rules/rule-structure.mdc`).
 
-**Иерархия источников:** предварительное ТЗ — в `documentation/`; уточнения — в `requirements/answers-project.md` (`Axxxx`) и согласованных пакетах ФТ, НФТ, US, UC, доменной модели и словаря данных (`A0086`–`A0091`). При конфликте с предварительным ТЗ приоритет у `Axxxx` и согласованных требований. Поведение агента — в `AGENTS.md`; память проекта — в `reports/agent-memory.md` (файл создаётся по команде «запомни» / `/pin-memory`).
+**Иерархия источников:** предварительное ТЗ — в `documentation/`; уточнения — в `requirements/answers-project.md` (`Axxxx`) и согласованных пакетах ФТ (`A0108`), НФТ (`A0109`), US, UC, доменной модели и словаря данных (`A0086`–`A0115`). При конфликте с предварительным ТЗ приоритет у `Axxxx` и согласованных требований. Поведение агента — в `AGENTS.md`; память проекта — в `reports/agent-memory.md` (файл создаётся по команде «запомни» / `/pin-memory`). Порядок срезов MVP — `reports/checklist.md`.
 
 ## Что должно уметь приложение (по ТЗ и `Axxxx`)
 
@@ -52,7 +52,7 @@
 - Правое окно «Русский перевод»; сохранить его в `.txt` или `.docx`.
 - Выбрать модель Ollama из списка, который опрашивает локальное API.
 - Поле «Кастомная инструкция» (системный промпт); по умолчанию — базовый промпт переводчика.
-- Кнопка «Перевести»; галочка «Автосохранение» (по умолчанию включена) — запись `.txt` в папку `output`.
+- Кнопка «Перевести»; предупреждение о несохранённом переводе перед «Перевести» или «Открыть файл» (`FT-032`, US-006).
 - Длинный текст незаметно режется на фрагменты (ориентир: абзацы, не больше 4000–5000 символов), перевод по очереди, склейка справа.
 - Индикатор прогресса при переводе большого документа.
 - Если Ollama недоступна или список моделей пуст — «Перевести» заблокирована; по наведению подсказка, почему кнопка недоступна.
@@ -66,10 +66,10 @@
 | `diagrams` | текстовые диаграммы (PlantUML / Mermaid / BPMN); есть Mermaid | есть | да (текст) | да (текст; картинки и бинарники — нет) |
 | `.cursor/skills` | промпты и инструкции для AI | есть | да | да |
 | `.cursor/rules` | правила для AI | есть | да | да |
-| `.cursor/commands` | команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/review-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
+| `.cursor/commands` | команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/qc-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
 | `.cursor/agents` | файлы агентов | целевая | да | да |
 | `src` | исходный код MVP: окно customtkinter (`run-ui.bat`, `app.py`, `ui/`) и прикладной слой (`domain/`, `services/`, `use_cases/` по `/app-layer`) | есть | да | да |
-| `reports` | есть `incompatibility-ft-nft.md`, `incompatibility-us-uc.md`, `domain-model-review.md`; `agent-memory.md` и `test-run.md` — целевые | частично | да | да |
+| `reports` | есть `checklist.md`, `incompatibility-ft-nft.md`, `incompatibility-us-uc.md`, `domain-model-review.md`; `agent-memory.md` и `test-run.md` — целевые | частично | да | да |
 | `artifacts` | артефакты вне `requirements` | целевая | да | да |
 | `tests` | автотесты pytest (desktop/customtkinter), карта `tests/coverage.md` | есть | да | да |
 | `test-data` | зарезервирована; только по прямому заданию разработчика | целевая | да | да |

@@ -23,8 +23,7 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Автосохранение макета TranslateText
-/src/output/
+# Временные файлы экспорта TranslateText
 /src/export-tmp/
 
 # Устаревшие компоненты (Источник: documentation/project-structure-v1-1.md, раздел 3)

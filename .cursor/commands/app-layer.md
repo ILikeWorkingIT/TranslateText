@@ -8,7 +8,9 @@ description: >-
 
 Прочитай и выполни `.cursor/skills/skill-app-layer.md` целиком. Команда `/app-layer` запускает этот скилл.
 
-Это **слой за кнопками**: доменные типы, службы (`SplitText`, `OllamaGateway`, `ExtractSource`, автосохранение, экспорт) и use case-координаторы. В `src/domain/`, `src/services/`, `src/use_cases/` **запрещён** импорт `customtkinter` / `tkinter`. Клей потока — только `src/ui/bridge.py`. Это **не** вёрстка окна и **не** макет.
+Это **слой за кнопками**: доменные типы, службы (`SplitText`, `OllamaGateway`, `ExtractSource`, экспорт по UC-003 / FT-044) и use case-координаторы. В `src/domain/`, `src/services/`, `src/use_cases/` **запрещён** импорт `customtkinter` / `tkinter`. Клей потока — только `src/ui/bridge.py`. Это **не** вёрстка окна и **не** макет.
+
+Автосохранение и папка `output` сняты (`A0096`). Несохранённый перевод — UC-006 / FT-032…FT-033.
 
 Не пиши FastAPI, Flask, Gradio, Streamlit, облачный перевод. Не клади httpx и нарезку в `src/ui/layout.py`. HTTP только как клиент к локальному Ollama (`http://127.0.0.1:11434`).
 

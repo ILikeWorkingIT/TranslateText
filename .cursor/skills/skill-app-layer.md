@@ -3,7 +3,8 @@ name: skill-app-layer
 description: >-
   Use when the user asks to implement the application/use-case layer behind
   the desktop window: Ollama HTTP client, Unicode text splitting, docx/pdf
-  extract, autosave/export, translation queue, typed errors, worker-thread
+  extract, export (UC-003 / FT-044), unsaved-translation warning (FT-032),
+  translation queue, typed errors, worker-thread
   contract, or runs /app-layer. Pure Python modules — no FastAPI/Flask, no
   customtkinter in domain/services/use_cases. Do not use for UI chrome
   (/frontend), click-only mockups (/ui-prototyping), or running the suite
@@ -69,7 +70,7 @@ Copy-in / events-out: в use case **не** передавай живой объ�
 | `SplitText` | `src/services/split_text.py` |
 | `OllamaGateway` (реализация порта) | `src/services/ollama_gateway.py` |
 | `ExtractSource` | `src/services/extract_source.py` |
-| автосохранение | `src/services/autosave.py` |
+| ~~автосохранение~~ | **снято** (`A0096`, `A0112`, `A0115`); не создавать `autosave.py` |
 | `ExportTranslation` | `src/services/export_translation.py` |
 | `StartTranslation` | `src/use_cases/start_translation.py` |
 | опрос моделей FT-045 | `src/use_cases/refresh_models.py` |
@@ -102,7 +103,7 @@ Copy-in / events-out: в use case **не** передавай живой объ�
 
 | Режим | Когда | Что делать |
 | --- | --- | --- |
-| **фича** | нарезка, Ollama, файлы, очередь, автосохранение | шаги 1 → 3; клей `bridge.py` — только если кнопке уже есть куда звать |
+| **фича** | нарезка, Ollama, файлы, очередь, предупреждение FT-032 | шаги 1 → 3; клей `bridge.py` — только если кнопке уже есть куда звать |
 | **баг** | таймаут, `request_id`, битый файл, лимит имён | канон → минимальный дифф |
 
 Нет канона / `@` / описания команды — спроси с рекомендацией.
@@ -120,10 +121,10 @@ Copy-in / events-out: в use case **не** передавай живой объ�
 ### Шаг 2. Изолированный сервис
 
 1. Типы и исключения — `src/domain/`.
-2. Атомарная служба — `src/services/`. Зависимости (шлюз, `output_dir: Path`) — **в конструктор**, не глобальный `Client()`.
+2. Атомарная служба — `src/services/`. Зависимости (шлюз) — **в конструктор**, не глобальный `Client()`.
 3. Координация — `src/use_cases/`. Use case **синхронный и блокирующий**: его зовут уже из воркера. Use case **не** создаёт `Thread` / `Process` / `asyncio`.
 4. `StartTranslation` не создаёт `httpx.Client`: получает `OllamaPort`.
-5. Каталог `output` не угадывай через `os.getcwd()` внутри службы: `output_dir: Path` в команде (UI/клей знает каталог запуска).
+5. Путь ручного «Сохранить перевод» — из диалога Пользователя (FT-004), не фиксированная папка `output`.
 
 ```python
 class OllamaPort(Protocol):
@@ -138,12 +139,9 @@ class StartTranslationCommand:
     instruction: str
     instruction_confirmed: bool
     model: str
-    autosave_enabled: bool
-    last_autosaved_body: str | None
-    output_dir: Path
 
 class StartTranslation:
-    def __init__(self, ollama: OllamaPort, autosave: AutosaveStore) -> None: ...
+    def __init__(self, ollama: OllamaPort) -> None: ...
     def run(
         self,
         command: StartTranslationCommand,
@@ -159,7 +157,7 @@ class StartTranslation:
 - На `WM_DELETE_WINDOW` клей: `stop_event.set()`, затем `ollama.close()` (с UI-потока), чтобы сорвать сокет, если библиотека это позволяет.
 - **Не** делай `thread.join()` без таймаута в обработчике закрытия — снова зависнет `mainloop`.
 - Если `close()` не разбудил `post`, воркер **доживает** текущий запрос (≤ 60 с), затем видит `stop_event` и выходит **без** `on_event` / `after`. Это не отмена очереди Пользователем (A0044), а разбор закрытия окна. В комментариях кода не обещай «мгновенный abort».
-- После любого исключения httpx: если `stop_event.is_set()`, **не** переводи очередь в `incomplete` и **не** зови автосохранение/колбэк — окно уже не принимает UI. Иначе сбой живого сеанса — обычный FT-028.
+- После любого исключения httpx: если `stop_event.is_set()`, **не** переводи очередь в `incomplete` и **не** зови колбэк — окно уже не принимает UI. Иначе сбой живого сеанса — обычный FT-028.
 
 Диалог FT-029 — **только UI**. В команду: согласие уже дано или инструкция непустая. Иначе `EmptyInstructionError`, промпт в поле не подставляй.
 
@@ -168,9 +166,9 @@ class StartTranslation:
 Службы проектируй так, чтобы pytest покрыл их **без** окна, **без** живого Ollama, **без** импорта `src.ui`.
 
 - Каталог `tests/`, имена `test_should_<поведение>_when_<условие>`. Не unittest. Не `mainloop`, не `CTk()`.
-- Подмена: фейк `OllamaPort`, `httpx.MockTransport`, `tmp_path` как `output_dir`.
+- Подмена: фейк `OllamaPort`, `httpx.MockTransport`, `tmp_path` для тестов `ExportTranslation`.
 - Импорт `src.services.*` / `src.use_cases.*` не должен тянуть `customtkinter`.
-- Минимум на затронутую зону: happy path; нарезка (≤5000 один фрагмент; абзац >5000; слово целое; никто >5000; `> 100_000` → `SourceLimitExceededError` из `SplitText`); таймаут 60 с → `incomplete`, склейка предыдущих жива, автосохранение склейки если галочка; `.txt` cp1251 после неудачного utf-8; битый/пустой файл → `DocumentParseError`; `close()` шлюза; лимит `0001…9999` → нет файла, очередь не `incomplete`.
+- Минимум на затронутую зону: happy path; нарезка (≤5000 один фрагмент; абзац >5000; слово целое; никто >5000; `> 100_000` → `SourceLimitExceededError` из `SplitText`); таймаут 60 с → `incomplete`, склейка предыдущих жива; `.txt` cp1251 после неудачного utf-8; битый/пустой файл → `DocumentParseError`; `close()` шлюза.
 - Контракт времени: у клиента `timeout=60` на запрос фрагмента (FT-028 / A0031). Живой GPU и NFT-001 (p95) не гоняй и не объявляй сданными.
 - Клей `bridge.py` пиши **после** зелёных unit по службе. `/use-tests` в этом ходе не запускай.
 
@@ -237,13 +235,9 @@ self._client = httpx.Client(
 
 ### Сохранение
 
-ФС не в окне. `output_dir` приходит снаружи (каталог запуска, FT-037).
+ФС не в окне. Ручной экспорт — путь из диалога Пользователя (FT-004, FT-043).
 
-**Автосохранение:** галочка ложь — не писать (A0020). Полный успех очереди (`completed`) — запись по FT-034. Имя `translate-NNNN.txt`, NNNN `0001…9999`, существующие не трогать; нет номера → `AutosaveNameLimitError`, статус очереди **не** менять на `incomplete` (A0077, A0094). Сбой записи → `AutosaveWriteError`, поля не чистить (FT-040).
-
-При переходе очереди в **`incomplete`** (сбой фрагмента / таймаут / ошибка модели), если `autosave_enabled` и `translation_so_far` непустой: **сразу** вызвать автосохранение этой склейки (страховка, в том числе если окно закроют без нового «Перевести»). Это не второй полный перевод: `last_autosaved_body` после успешной записи равен этой склейке. Перед следующим «Перевести» FT-036 не копирует тот же текст ещё раз.
-
-Не откладывай первую запись incomplete «на потом»: фраза «incomplete перед новым запуском» в FT-036 — про запрет потерять текст при **замене** поля; немедленная запись это закрывает раньше.
+**Автосохранение (FT-034…FT-040): снято** (`A0096`, `A0112`, `A0115`). Не реализовывать. Несохранённый перевод — UC-006 / FT-032…FT-033.
 
 **Экспорт:** только `.txt` / `.docx` (FT-046). Диалог замены — UI (FT-043). Сбой → `ExportWriteError`, перевод не стирать (FT-044). Пустой перевод — не вызывать (FT-027).
 
@@ -284,9 +278,9 @@ class QueueEvent:
 
 После фрагмента: склейка в `translation_so_far` (только уже успешные фрагменты), `nextIndex += 1`, `inProgress`.
 
-Сбой **текущего** фрагмента: `status = incomplete`; `nextIndex` не увеличивать; в `translation_so_far` оставить склейку **уже успешных** фрагментов (не укорачивать её и не дописывать обрывок сбоя). Сразу автосохранение этой склейки, если галочка включена (§3). Не помечать как полный перевод (FT-028).
+Сбой **текущего** фрагмента: `status = incomplete`; `nextIndex` не увеличивать; в `translation_so_far` оставить склейку **уже успешных** фрагментов (не укорачивать её и не дописывать обрывок сбоя). Не помечать как полный перевод (FT-028).
 
-Успех всей очереди: `completed`, новое значение **заменяет** правое поле (FT-035), затем автосохранение полного текста (FT-034).
+Успех всей очереди: `completed`, новое значение **заменяет** правое поле (FT-035); текст несохранён до «Сохранить перевод» (FT-033).
 
 ### Два счётчика id (перевод ≠ опрос моделей)
 
@@ -331,7 +325,6 @@ class QueueEvent:
 | `SourceLimitExceededError` | `SplitText`, оригинал > 100 000 символов Unicode |
 | `EmptyInstructionError` | пустая инструкция без согласия |
 | `QueueBusyError` | повторный старт при `inProgress` |
-| `AutosaveWriteError` / `AutosaveNameLimitError` | запись / лимит NNNN |
 | `ExportWriteError` | сбой ручного файла |
 
 UI ловит `AppLayerError` и берёт фразу из `messages.py`. В исключении — тип и техническая деталь для теста, не простыня FT-024.
@@ -367,6 +360,6 @@ UI ловит `AppLayerError` и берёт фразу из `messages.py`. В и
 
 **Типы** — команда, событие, порт, исключения. Без `Any`.
 
-**Edge cases** — только сделанные: лимит 100k (`SplitText`); utf-8 затем cp1251; таймаут 60 с; `incomplete` + немедленное автосохранение склейки; два id; `Client.close()`; лимит имён; `inProgress`.
+**Edge cases** — только сделанные: лимит 100k (`SplitText`); utf-8 затем cp1251; таймаут 60 с; `incomplete` без потери склейки; два id; `Client.close()`; `inProgress`.
 
 **Как проверить** — список `test_should_…`; что подменено. Живой Ollama для unit не нужен. Предложи `/use-tests`; если менялся хром — `/frontend` и `/new-tests`. В этом запуске QA не выполняй.

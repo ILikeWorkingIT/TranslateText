@@ -1,7 +1,6 @@
 """Стартовый экран: подписи глоссария и поля Must UI, которые уже есть в макете."""
 
 from ui.messages import (
-    LABEL_AUTOSAVE,
     LABEL_CUSTOM_INSTRUCTION,
     LABEL_MODEL,
     LABEL_OPEN_FILE,
@@ -26,7 +25,6 @@ GLOSSARY_LABELS = (
     LABEL_CUSTOM_INSTRUCTION,
     LABEL_MODEL,
     LABEL_TRANSLATE,
-    LABEL_AUTOSAVE,
 )
 
 GLOSSARY_BASE_PROMPT = (
@@ -37,7 +35,7 @@ GLOSSARY_BASE_PROMPT = (
 
 
 def test_should_show_all_glossary_labels_when_window_opens(window):
-    """NFT-006, happy: на главном экране все 8 подписей глоссария."""
+    """NFT-006, happy: на главном экране все 7 подписей глоссария."""
     missing = [label for label in GLOSSARY_LABELS if find_by_text(window, label) is None]
     assert missing == [], "на главном экране есть все подписи глоссария"
 
@@ -74,16 +72,6 @@ def test_should_show_model_list_when_window_opens(window):
     assert window.model is not None, "есть список Модель"
     values = window.model.cget("values")
     assert values is not None, "список Модель содержит значения"
-
-
-def test_should_show_autosave_control_when_window_opens(window):
-    """FT-032, happy: на экране есть галочка «Автосохранение»."""
-    assert find_by_text(window, LABEL_AUTOSAVE) is not None, "есть галочка Автосохранение"
-
-
-def test_should_enable_autosave_when_window_opens(window):
-    """FT-033, happy: «Автосохранение» включено при старте."""
-    assert bool(window.autosave.get()), "галочка Автосохранение включена при старте"
 
 
 def test_should_show_progress_indicator_at_zero_when_window_opens(window):

@@ -114,7 +114,7 @@ Use Cases (Cockburn) этого проекта — через `/uc` (скилл 
 Детали User Stories — в скилле `/us` (`skill-us`); Use Cases — в скилле `/uc` (`skill-uc`); контроль качества US/UC — `/qc-us-uc` (`skill-quality-control-us-uc`).
 BPMN для bpmn.io — `/diagram-bpmn` (`skill-diagram-bpmn`): файлы `diagrams/bpmn-NNN.bpmn`.
 Mermaid — `/diagram-mermaid` (`skill-diagram-mermaid`): flowchart, DFD, classDiagram, sequenceDiagram, C4; файлы `diagrams/diagram-mermaid-NNN.md` (пояснения перед диаграммой). Sequence: до кода Mermaid обязателен прогон anti-pattern guardrails §4.6 скилла.
-Доменная модель (DDD) — `/ddd` (`skill-ddd`): `requirements/domain-model.md`; в конце прогона обязателен аудит `/review-ddd` (`skill-review-ddd`). Самостоятельный аудит готовой модели — только `/review-ddd`.
+Доменная модель (DDD) — `/ddd` (`skill-ddd`): `requirements/domain-model.md`; в конце прогона обязателен QC `/qc-ddd` (`skill-quality-control-ddd`). Самостоятельный аудит готовой модели — `/qc-ddd`.
 Словарь данных — `/data-dictionary` (`skill-data-dictionary`): `requirements/data-dictionary.md`; после создания или обновления обязательна проверка по гейту скилла до сообщения разработчику о завершении.
 Интерактивный макет — `/ui-prototyping` (`skill-ui-prototyping`): окно приложения (не сайт), красивый вид и клики без функционала; запуск — launcher в проводнике, не терминал агента и не браузер.
 Рабочий UI — `/frontend` (`skill-frontend-developer`): customtkinter, тема, стейт окна; макет без функционала — `/ui-prototyping`. Прикладной слой за кнопками — `/app-layer` (`skill-app-layer`): Ollama-клиент, нарезка, файлы, очередь; без FastAPI. После правки UI или слоя предлагай `/new-tests` и `/use-tests`, в том же ходе их не запускай.
@@ -140,7 +140,7 @@ OpenAPI-контракт — `/openai` (`skill-openai`): `requirements/openapi.y
 
 1. Правда — файлы **этого** репозитория; чужие проекты не подтягивать без явного `@` / вложения.
 2. Предварительное ТЗ — `documentation/`.
-3. `Axxxx` и согласованные пакеты в `requirements/` (ФТ, НФТ, US, UC, доменная модель, словарь данных — `A0086`–`A0091`) уточняют ТЗ и при расхождении важнее его.
+3. `Axxxx` и согласованные пакеты в `requirements/` (ФТ `A0108`, НФТ `A0109`, US/UC, доменная модель, словарь данных — `A0086`–`A0115`) уточняют ТЗ и при расхождении важнее его.
 4. Не опираться на устаревшие «решение заказчика» / `Qn`, если есть `Axxxx`.
 
 Команды и скиллы: `.cursor/list-commands.md`.

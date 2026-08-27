@@ -42,17 +42,6 @@ def test_should_disable_save_when_translation_is_empty(window):
     assert is_disabled(button), "кнопка Сохранить перевод заблокирована, когда перевод пуст"
 
 
-def test_should_keep_autosave_enabled_when_translation_is_empty(window):
-    """FT-027, US-003, edge: пустой перевод не блокирует «Автосохранение»."""
-    box = find_textbox_for_label(window, LABEL_TRANSLATION)
-    assert box is not None, "есть поле Русский перевод"
-    set_textbox_content(box, "")
-    window.update_idletasks()
-    assert not is_disabled(window.autosave), (
-        "галочка Автосохранение не блокируется из-за пустого перевода"
-    )
-
-
 def test_should_disable_translate_when_model_list_is_empty(window):
     """FT-048, US-001, negative: «Перевести» заблокирована при пустом списке моделей."""
     window.model.configure(values=[])

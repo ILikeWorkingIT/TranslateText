@@ -17,7 +17,7 @@
 * `diagrams` — архитектурные и логические диаграммы (PlantUML / Mermaid / BPMN).
 * `.cursor/skills` — промпты и инструкции для AI.
 * `.cursor/rules` — правила для AI.
-* `.cursor/commands` — команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/review-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory` и др.).
+* `.cursor/commands` — команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/qc-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory` и др.).
 * `.cursor/agents` — файлы агентов; целевая папка, создаётся по необходимости.
 * `src` — исходный код MVP и макет окна: `app.py`, `ui/`, прикладной слой `domain/` / `services/` / `use_cases/` (команда `/app-layer`), launcher `run-ui.bat`; UI — customtkinter (окно приложения, не Gradio/Streamlit и не браузер).
 * `reports` — отчёты: `agent-memory.md` (память агента), `incompatibility-ft-nft.md` (QC ФТ/НФТ), `incompatibility-us-uc.md` (QC US/UC), `domain-model-review.md` (аудит DDD), `test-run.md` (прогон автотестов, очередь багов), `checklist.md` (чеклист срезов MVP).

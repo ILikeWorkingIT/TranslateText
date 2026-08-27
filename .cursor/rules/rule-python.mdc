@@ -16,7 +16,7 @@ alwaysApply: false
 - Импорты — вверху модуля, не в теле функции.
 - Константы палитры и шрифтов — `src/ui/theme.py`. Hex в панелях не пиши.
 - Подписи экрана — `src/ui/messages.py` / глоссарий. Не переименовывай видимый текст: тесты ищут точное совпадение.
-- Интерактивные виджеты — стабильный `self.<роль>` и `widget.qa_id` (аналог `data-testid`; не `_testid`). Не ломай `self.model`, `self.autosave`, `self.status`.
+- Интерактивные виджеты — стабильный `self.<роль>` и `widget.qa_id` (аналог `data-testid`; не `_testid`). Не ломай `self.model`, `self.status`.
 - I/O (Ollama, файлы) не выполняй в UI-потоке: `Thread(daemon=True)` + `after(...)`. На закрытии окна — флаг стопа и `after_cancel`. Блок `mainloop` — дефект.
 - В одном родителе не смешивай `pack()` и `grid()`.
 - Новую зависимость не добавляй без явной просьбы. Сейчас в `src/requirements.txt` — `customtkinter`. Исключение: `/app-layer` при реализации шлюза/файлов может добавить только `httpx`, `python-docx`, `pypdf`.

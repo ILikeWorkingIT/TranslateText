@@ -7,7 +7,6 @@ LABEL_TRANSLATION = "Русский перевод"
 LABEL_CUSTOM_INSTRUCTION = "Кастомная инструкция"
 LABEL_MODEL = "Модель"
 LABEL_TRANSLATE = "Перевести"
-LABEL_AUTOSAVE = "Автосохранение"
 LABEL_PROGRESS = "Индикатор прогресса"
 
 BASE_PROMPT = (

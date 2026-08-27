@@ -4,7 +4,6 @@ import customtkinter as ctk
 
 from ui.messages import (
     BASE_PROMPT,
-    LABEL_AUTOSAVE,
     LABEL_CUSTOM_INSTRUCTION,
     LABEL_MODEL,
     LABEL_OPEN_FILE,
@@ -36,7 +35,6 @@ from ui.theme import (
     TRACK,
 )
 
-FONT_TITLE = ("Segoe UI", 20, "bold")
 FONT_LABEL = ("Segoe UI", 13)
 FONT_BODY = ("Segoe UI", 14)
 FONT_BUTTON = ("Segoe UI", 13)
@@ -66,17 +64,10 @@ class TranslateTextWindow(ctk.CTk):
     def _build_header(self) -> None:
         header = ctk.CTkFrame(self, fg_color=BG, corner_radius=0)
         header.grid(row=0, column=0, sticky="ew", padx=28, pady=(18, 8))
-        header.grid_columnconfigure(1, weight=1)
-
-        ctk.CTkLabel(
-            header,
-            text="TranslateText",
-            font=FONT_TITLE,
-            text_color=TEXT,
-        ).grid(row=0, column=0, sticky="w")
+        header.grid_columnconfigure(0, weight=1)
 
         actions = ctk.CTkFrame(header, fg_color="transparent")
-        actions.grid(row=0, column=1, sticky="e")
+        actions.grid(row=0, column=0, sticky="e")
         self._ghost_button(actions, LABEL_OPEN_FILE).pack(side="left", padx=6)
         self._ghost_button(actions, LABEL_SAVE_TRANSLATION).pack(side="left", padx=6)
 
@@ -108,20 +99,6 @@ class TranslateTextWindow(ctk.CTk):
         )
         self.model.set(SAMPLE_MODEL)
         self.model.pack(side="left")
-
-        self.autosave = ctk.CTkSwitch(
-            actions,
-            text=LABEL_AUTOSAVE,
-            font=FONT_LABEL,
-            text_color=TEXT,
-            progress_color=PRIMARY,
-            button_color=TEXT,
-            button_hover_color=LABEL,
-            fg_color=TRACK,
-            command=self._on_autosave,
-        )
-        self.autosave.select()
-        self.autosave.pack(side="left", padx=(16, 0))
 
     def _build_panes(self) -> None:
         panes = ctk.CTkFrame(self, fg_color=BG, corner_radius=0)
@@ -261,9 +238,6 @@ class TranslateTextWindow(ctk.CTk):
 
     def _on_model(self, value: str) -> None:
         self._toast(f"{LABEL_MODEL}: {value}")
-
-    def _on_autosave(self) -> None:
-        self._toast(LABEL_AUTOSAVE)
 
     def _toast(self, label: str) -> None:
         self.status.configure(
