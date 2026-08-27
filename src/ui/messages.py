@@ -11,6 +11,10 @@ LABEL_PROGRESS = "Индикатор прогресса"
 
 HINT_NO_TEXT = "Нет текста для перевода"
 HINT_OLLAMA_DOWN = "Ollama не работает"
+STATUS_OLLAMA_UNAVAILABLE = (
+    "Локальный Ollama недоступен. Запустите файл start_ollama.bat "
+    "в папке F:\\Docker\\Ollama"
+)
 
 BASE_PROMPT = (
     "Ты профессиональный переводчик. Переведи текст с английского на русский. "

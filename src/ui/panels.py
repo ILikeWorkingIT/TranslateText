@@ -268,6 +268,8 @@ class FooterBar(ctk.CTkFrame):
             font=FONT_STATUS,
             text_color=TOAST,
             anchor="center",
+            justify="center",
+            wraplength=900,
         )
         self.status.grid(row=2, column=0, pady=(12, 10))
         _set_qa_id(self.status, "label-status")

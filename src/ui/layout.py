@@ -8,11 +8,12 @@ import customtkinter as ctk
 from domain.models import ModelsRefreshedEvent
 from services.ollama_gateway import OllamaGateway
 from ui.bridge import ModelsBridge
-from ui.messages import HINT_NO_TEXT, HINT_OLLAMA_DOWN
+from ui.messages import HINT_NO_TEXT, HINT_OLLAMA_DOWN, STATUS_OLLAMA_UNAVAILABLE
 from ui.panels import FooterBar, HeaderBar, InstructionCard, TextPanes
 from ui.theme import BG, CARD, FONT_STATUS, TEXT
 
 TranslateState = Literal["idle"]
+OllamaAvailability = Literal["unknown", "available", "unavailable"]
 
 
 class TranslateTextWindow(ctk.CTk):
@@ -26,12 +27,14 @@ class TranslateTextWindow(ctk.CTk):
         self._hint_leave_after = ""
         self._ui_state: TranslateState = "idle"
         self._applying_models = False
+        self._ollama_availability: OllamaAvailability = "unknown"
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build()
         self._models_bridge = ModelsBridge(
             host=self,
             ollama=OllamaGateway(),
             on_models=self._on_models_refreshed,
+            on_unavailable=self._on_models_unavailable,
         )
         self._bind_model_refresh_triggers()
         self._request_models_refresh()
@@ -135,10 +138,22 @@ class TranslateTextWindow(ctk.CTk):
     def _on_models_refreshed(self, event: ModelsRefreshedEvent) -> None:
         self._applying_models = True
         try:
+            self._ollama_availability = "available"
             self.model.configure(values=list(event.models))
             self.model.set(event.selected_model)
         finally:
             self._applying_models = False
+        self._refresh_action_states()
+
+    def _on_models_unavailable(self) -> None:
+        self._applying_models = True
+        try:
+            self._ollama_availability = "unavailable"
+            self.model.configure(values=[])
+            self.model.set("")
+        finally:
+            self._applying_models = False
+        self._refresh_action_states()
 
     def _bind_translate_hover(self) -> None:
         self.translate.bind("<Enter>", self._on_translate_enter)
@@ -166,14 +181,30 @@ class TranslateTextWindow(ctk.CTk):
             return True
         return len(tuple(values)) == 0
 
+    def _ollama_blocks_translate(self) -> bool:
+        return (
+            self._ollama_availability == "unavailable" or self._models_empty()
+        )
+
     def _refresh_action_states(self) -> None:
         original_empty = len(self._text_of(self.original)) == 0
         translation_empty = len(self._text_of(self.translation)) == 0
-        translate_blocked = original_empty or self._models_empty()
+        translate_blocked = original_empty or self._ollama_blocks_translate()
         self.translate.configure(state="disabled" if translate_blocked else "normal")
         self.save.configure(state="disabled" if translation_empty else "normal")
+        if self._ollama_availability == "unavailable":
+            self.status.configure(text=STATUS_OLLAMA_UNAVAILABLE)
+        else:
+            self.status.configure(text="")
         if not translate_blocked:
             self._hide_translate_hint()
+            return
+        try:
+            hint_shown = bool(self.translate_hint.winfo_ismapped())
+        except tkinter.TclError:
+            hint_shown = False
+        if hint_shown:
+            self._show_translate_hint()
 
     def _on_translate_enter(self, _event: object) -> str | None:
         if self._hint_leave_after:
@@ -189,7 +220,7 @@ class TranslateTextWindow(ctk.CTk):
         return None
 
     def _blocking_hint_text(self) -> str | None:
-        if self._models_empty():
+        if self._ollama_blocks_translate():
             return HINT_OLLAMA_DOWN
         if len(self._text_of(self.original)) == 0:
             return HINT_NO_TEXT
@@ -224,7 +255,10 @@ class TranslateTextWindow(ctk.CTk):
         return
 
     def _on_translate(self) -> None:
-        return
+        if self._ollama_blocks_translate():
+            return
+        if len(self._text_of(self.original)) == 0:
+            return
 
     def _on_model(self, _value: str) -> None:
         return
