@@ -14,6 +14,17 @@ def require_ready_instruction(instruction: str) -> None:
         raise EmptyInstructionError("empty instruction")
 
 
+def restore_trailing_line_breaks(source: str, translated: str) -> str:
+    """Хвостовые переводы строк исходного фрагмента — в склейке (A0142, FT-020)."""
+    index = len(source)
+    while index > 0 and source[index - 1] in "\r\n":
+        index -= 1
+    suffix = source[index:].replace("\r\n", "\n").replace("\r", "\n")
+    if suffix == "":
+        return translated
+    return translated.rstrip("\r\n") + suffix
+
+
 class StartTranslation:
     def __init__(self, ollama: OllamaPort, *, split_text: SplitText | None = None) -> None:
         self._ollama = ollama
@@ -91,6 +102,7 @@ class StartTranslation:
                 )
                 return
 
+            translated = restore_trailing_line_breaks(fragment.source, translated)
             translated_parts.append(translated)
             processed += len(fragment.source)
             if stop_event.is_set():

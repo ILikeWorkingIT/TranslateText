@@ -64,7 +64,7 @@
 | `test_should_enable_translate_when_translation_finishes` | `tests/test_translation.py` | FT-031 | happy | success | блокировка снята после ответа |
 | `test_should_replace_previous_translation_when_user_translates_again` | `tests/test_translation.py` | FT-035; US-001 AC3 | happy | success | не конкатенация |
 | `test_should_keep_request_snapshot_when_fields_change_during_translation` | `tests/test_translation.py` | FT-011; NFT-014; A0052 | edge | loading | клик «Модель» не убивает перевод |
-| `test_should_post_chat_to_local_ollama_when_translating_fragment` | `tests/test_ollama_gateway.py` | FT-012; FT-013 | happy | — | MockTransport POST /api/chat |
+| `test_should_post_chat_to_local_ollama_when_translating_fragment` | `tests/test_ollama_gateway.py` | FT-012; FT-013; A0145 | happy | — | POST /api/chat; `num_predict=-1`; хвост A0145 в user |
 | `test_should_raise_empty_instruction_when_instruction_empty_and_not_confirmed` | `tests/test_start_translation.py` | FT-029; A0050 | negative | — | без GUI; Ollama не вызывается |
 | `test_should_not_substitute_prompt_when_instruction_empty_even_if_confirmed` | `tests/test_start_translation.py` | FT-029 | negative | — | слой не подставляет промпт |
 | `test_should_start_with_snapshot_when_instruction_already_nonempty` | `tests/test_start_translation.py` | FT-011; FT-029 | happy | — | снимок непустой инструкции |
@@ -77,14 +77,22 @@
 | `test_should_not_start_translation_when_user_cancels_empty_instruction_dialog` | `tests/test_empty_instruction.py` | FT-029; US-005 AC4; A0050 | negative | dialog | отмена без Ollama |
 | `test_should_fill_base_prompt_and_translate_when_user_confirms_en_ru` | `tests/test_empty_instruction.py` | FT-029; A0006; A0050 | happy | success | согласие EN→RU |
 | `test_should_fill_ru_en_base_prompt_and_translate_when_user_confirms_ru_en` | `tests/test_empty_instruction.py` | FT-029; A0122 | happy | success | согласие RU→EN |
-| `test_should_return_one_fragment_when_text_is_at_most_5000_chars` | `tests/test_split_text.py` | FT-016 | happy | — | SplitText без GUI |
-| `test_should_split_into_multiple_fragments_when_text_exceeds_5000_with_paragraphs` | `tests/test_split_text.py` | FT-015; FT-018; FT-019 | happy | — | два абзаца по 3000 |
-| `test_should_preserve_paragraphs_in_single_fragment_when_total_under_5000` | `tests/test_split_text.py` | FT-018 | edge | — | упаковка в один фрагмент |
+| `test_should_return_one_fragment_when_text_is_at_most_700_chars` | `tests/test_split_text.py` | FT-016; A0141 | happy | — | SplitText без GUI |
+| `test_should_split_into_two_fragments_when_text_exceeds_700_with_paragraphs` | `tests/test_split_text.py` | FT-015; FT-018; A0141; A0142 | happy | — | два абзаца; `\n\n` у первого |
+| `test_should_preserve_short_paragraphs_in_one_fragment_when_total_under_700` | `tests/test_split_text.py` | FT-018 | edge | — | упаковка в один фрагмент |
 | `test_should_split_on_blank_line_when_text_uses_crlf` | `tests/test_split_text.py` | FT-018 | edge | — | Windows `\r\n\r\n` |
-| `test_should_glue_translation_when_long_text_splits_into_fragments` | `tests/test_fragment_queue.py` | FT-015; FT-020 | happy | success | UI + очередь |
+| `test_should_split_long_paragraph_on_sentence_boundaries_not_spaces` | `tests/test_split_text.py` | A0142; FT-025 | happy | — | резка по `.` / `?` / `!` |
+| `test_should_keep_filename_extension_inside_sentence_when_splitting` | `tests/test_split_text.py` | A0142 | edge | — | `.md file` не граница |
+| `test_should_split_after_period_when_numbered_list_follows_without_space` | `tests/test_split_text.py` | A0142 | edge | — | `it.1. What` |
+| `test_should_split_after_question_when_next_sentence_has_no_space` | `tests/test_split_text.py` | A0142 | edge | — | `prompt?Only` |
+| `test_should_attach_paragraph_break_to_previous_sentence` | `tests/test_split_text.py` | A0142 | edge | — | `\n\n` у предыдущего предложения |
+| `test_should_keep_numbered_item_as_one_sentence` | `tests/test_split_text.py` | A0142 | edge | — | не рвать после `1.` |
+| `test_should_split_user_en_text_on_real_sentences` | `tests/test_split_text.py` | A0142 | happy | — | образец EN со скрина |
+| `test_should_glue_translation_when_long_text_splits_into_fragments` | `tests/test_fragment_queue.py` | FT-015; FT-020 | happy | success | UI + очередь; `\\n\\n` между фрагментами |
+| `test_should_keep_blank_line_before_next_fragment_when_model_drops_it` | `tests/test_start_translation.py` | A0142; FT-020 | edge | — | модель съела `\\n\\n` — склейка восстанавливает |
 | `test_should_raise_source_limit_when_text_exceeds_100000_chars` | `tests/test_split_text.py` | FT-023; A0036 | negative | — | SourceLimitExceededError |
 | `test_should_allow_exactly_100000_chars` | `tests/test_split_text.py` | FT-023 | edge | — | ровно 100k |
-| `test_should_translate_fragments_sequentially_when_text_exceeds_5000` | `tests/test_start_translation.py` | FT-015; FT-019; FT-020 | happy | — | очередь, склейка |
+| `test_should_translate_fragments_sequentially_when_text_exceeds_700` | `tests/test_start_translation.py` | FT-015; FT-019; FT-020 | happy | — | очередь, склейка |
 | `test_should_emit_progress_after_each_fragment_when_queue_runs` | `tests/test_start_translation.py` | FT-022; NFT-005 | happy | — | processed_source_chars |
 | `test_should_keep_over_limit_text_in_field_before_translate` | `tests/test_source_limit.py` | FT-014 | happy | — | поле >100k |
 | `test_should_not_call_ollama_when_user_translates_over_limit_text` | `tests/test_source_limit.py` | FT-023; US-001 AC4 | negative | error | без Ollama |
@@ -92,3 +100,8 @@
 | `test_should_show_limit_message_when_user_translates_over_limit_text` | `tests/test_source_limit.py` | FT-023; A0007 | negative | error | строка статуса |
 | `test_should_enable_translate_when_original_exceeds_limit` | `tests/test_source_limit.py` | FT-014 | edge | — | кнопка до «Перевести» |
 | `test_should_translate_when_original_is_exactly_100000_chars` | `tests/test_source_limit.py` | FT-023 | edge | success | ровно 100k OK |
+| `test_should_strip_russian_instruction_tail_when_model_echoes_it` | `tests/test_ollama_gateway.py` | A0145 | edge | — | хвост не в переводе |
+| `test_should_strip_english_instruction_tail_when_model_translates_it` | `tests/test_ollama_gateway.py` | A0145 | edge | — | EN-перевод хвоста и обрывок |
+| `test_should_split_text1_into_three_fragments_when_loaded` | `tests/test_text1_ru_en.py` | A0141; A0142 | happy | — | `test-data/Text1.txt`; Task в фрагменте 2 |
+| `test_should_start_new_fragment_after_filled_paragraph_break` | `tests/test_split_text.py` | A0141; A0142 | edge | — | абзац ≥500 + `\\n\\n` — новый фрагмент |
+| `test_should_translate_all_three_text1_fragments_when_ru_en` | `tests/test_text1_ru_en.py` | FT-015; FT-020; A0145 | happy | — | три вызова Ollama, склейка EN, без утечки хвоста |

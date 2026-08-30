@@ -8,7 +8,8 @@ from threading import Event
 import pytest
 
 from domain.errors import EmptyInstructionError
-from domain.models import QueueEvent, StartTranslationCommand
+from domain.models import Fragment, QueueEvent, StartTranslationCommand
+from services.split_text import SplitText
 from ui.bridge import TranslationBridge
 from use_cases.start_translation import StartTranslation, require_ready_instruction
 
@@ -198,10 +199,10 @@ def test_should_translate_fragments_sequentially_when_text_exceeds_700() -> None
         on_event=events.append,
     )
     assert len(port.translate_calls) == 2, "два абзаца — два запроса Ollama"
-    assert port.translate_calls[0][2] == part
+    assert port.translate_calls[0][2] == f"{part}\n\n"
     assert port.translate_calls[1][2] == part
     assert events[-1].status == "completed"
-    assert events[-1].translation_so_far == "part0part1"
+    assert events[-1].translation_so_far == "part0\n\npart1"
     assert events[-1].processed_source_chars == len(original)
 
 
@@ -230,5 +231,45 @@ def test_should_emit_progress_after_each_fragment_when_queue_runs() -> None:
         if event.status == "inProgress"
     ]
     assert progress_events[0] == 0
-    assert progress_events[-1] == len(part)
+    assert progress_events[-1] == len(part) + 2
     assert events[-1].processed_source_chars == len(original)
+
+
+class _FixedSplit(SplitText):
+    def split(self, _text: str) -> tuple[Fragment, ...]:
+        return (
+            Fragment(order=0, source="Hello.\n\n"),
+            Fragment(order=1, source="Task: Go."),
+        )
+
+
+class _OmitBreaksOllama(FakeOllama):
+    def translate_fragment(
+        self, *, model: str, instruction: str, source: str
+    ) -> str:
+        self.translate_calls.append((model, instruction, source))
+        if source.startswith("Hello"):
+            return "Hi."
+        return "Task: Go."
+
+
+def test_should_keep_blank_line_before_next_fragment_when_model_drops_it() -> None:
+    """A0142, FT-020: исходник кончается на \\n\\n — в склейке пустая строка, не as.Task:."""
+    port = _OmitBreaksOllama()
+    events: list[QueueEvent] = []
+    command = StartTranslationCommand(
+        request_id=9,
+        original_text="Hello.\n\nTask: Go.",
+        instruction="style",
+        instruction_confirmed=False,
+        model="qwen2.5:3b",
+        direction="EN→RU",
+    )
+    StartTranslation(port, split_text=_FixedSplit()).run(
+        command,
+        stop_event=Event(),
+        on_event=events.append,
+    )
+    glued = events[-1].translation_so_far
+    assert glued == "Hi.\n\nTask: Go."
+    assert "Hi.Task:" not in glued

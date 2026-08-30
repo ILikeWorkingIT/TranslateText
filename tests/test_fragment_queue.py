@@ -45,8 +45,8 @@ def test_should_glue_translation_when_long_text_splits_into_fragments(open_windo
     )
     box = find_textbox_for_label(app, LABEL_TRANSLATION)
     assert box is not None
-    assert textbox_content(box) == "firstsecond", (
-        "после двух фрагментов в поле склейка перевода"
+    assert textbox_content(box) == "first\n\nsecond", (
+        "после двух фрагментов в поле склейка перевода с разрывом абзаца"
     )
     bar = find_progress_bar(app)
     assert bar is not None
