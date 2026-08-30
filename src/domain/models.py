@@ -49,6 +49,9 @@ class StartTranslationCommand:
     instruction_confirmed: bool
     model: str
     direction: str
+    translation_text: str = ""
+    translation_saved: bool = True
+    unsaved_confirmed: bool = False
 
 
 @dataclass(frozen=True)

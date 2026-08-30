@@ -50,9 +50,13 @@ def _translate(window, text: str) -> None:
     window.update_idletasks()
 
 
-def test_should_translate_user_short_ru_text_then_longer_ru_text(open_window):
+def test_should_translate_user_short_ru_text_then_longer_ru_text(
+    monkeypatch,
+    open_window,
+):
     """Регрессия: короткий RU→EN, затем более длинный — оба в поле перевода."""
     app, port = open_window(("qwen2.5:3b",))
+    monkeypatch.setattr("ui.layout.messagebox.askokcancel", lambda *_a, **_k: True)
     port.translation_results = ("Short EN.", "Long EN translation.")
     _select_ru_en(app)
     _translate(app, SHORT_RU)

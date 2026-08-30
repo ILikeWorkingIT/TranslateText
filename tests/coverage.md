@@ -2,7 +2,7 @@
 
 Поверхность: desktop (CustomTkinter). Раннер: pytest. Прогон — команда `/use-tests`.
 
-Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Срез S-05: пустая инструкция — диалог FT-029, согласие или отмена, базовый промпт текущего направления. Срез S-06: лимит 100 000 символов Unicode — поле держит >100k, отказ при «Перевести» без Ollama. Срез S-07: нарезка по абзацам, очередь перевода, прогресс по доле исходника, склейка. Срез S-07b: сверхдлинный абзац (FT-025). Срез S-07c: отмена очереди (FT-054) — unit `StartTranslation` / `TranslationBridge.cancel` и GUI-кнопка «Отменить перевод». Срез S-08: сбой фрагмента и таймаут 60 с (FT-028). Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
+Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Срез S-05: пустая инструкция — диалог FT-029, согласие или отмена, базовый промпт текущего направления. Срез S-06: лимит 100 000 символов Unicode — поле держит >100k, отказ при «Перевести» без Ollama. Срез S-07: нарезка по абзацам, очередь перевода, прогресс по доле исходника, склейка. Срез S-07b: сверхдлинный абзац (FT-025). Срез S-07c: отмена очереди (FT-054) — unit `StartTranslation` / `TranslationBridge.cancel` и GUI-кнопка «Отменить перевод». Срез S-08: сбой фрагмента и таймаут 60 с (FT-028). Срез S-09: предупреждение о несохранённом переводе (FT-032, FT-033, UC-006). Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
 
 | Тест | Файл | Требования | Слой | Состояние UI | Примечание |
 | --- | --- | --- | --- | --- | --- |
@@ -137,3 +137,25 @@
 | `test_should_enable_translate_when_cancelled_request_finishes` | `tests/test_cancel_translation.py` | FT-031; A0151 | happy | success | после конца запроса Перевести живая |
 | `test_should_keep_cancelled_status_when_in_flight_fails_after_cancel` | `tests/test_cancel_translation.py` | A0153; A0148 | negative | error | сбой после отмены — FT-054, поле пусто |
 | `test_should_show_cancelled_status_when_user_cancels_ru_en` | `tests/test_cancel_translation.py` | US-010 AC3 | negative | error | то же при RU→EN |
+| `test_should_not_treat_empty_field_as_unsaved_when_saved_flag_is_false` | `tests/test_unsaved_translation.py` | FT-032; US-006 AC4 | edge | — | пустое поле — не несохранённый |
+| `test_should_not_treat_nonempty_as_unsaved_when_export_succeeded` | `tests/test_unsaved_translation.py` | FT-033; FT-004 | happy | — | после сохранения |
+| `test_should_treat_nonempty_as_unsaved_when_not_exported` | `tests/test_unsaved_translation.py` | FT-033; A0097 | negative | — | гейт без подтверждения |
+| `test_should_raise_unsaved_when_queue_starts_without_confirmation` | `tests/test_unsaved_translation.py` | FT-032 | negative | — | Ollama не вызывается |
+| `test_should_start_queue_when_unsaved_is_confirmed` | `tests/test_unsaved_translation.py` | FT-032; A0098 | happy | — | после подтверждения |
+| `test_should_start_queue_when_incomplete_translation_is_confirmed` | `tests/test_unsaved_translation.py` | A0097 | edge | — | неполный текст |
+| `test_should_raise_unsaved_when_bridge_starts_without_confirmation` | `tests/test_unsaved_translation.py` | FT-032 | negative | — | клей не стартует воркер |
+| `test_should_mark_saved_when_translation_field_becomes_empty` | `tests/test_unsaved_translation.py` | FT-033 | edge | — | пустое = сохранённое |
+| `test_should_mark_saved_when_export_succeeds` | `tests/test_unsaved_translation.py` | FT-004 | happy | — | сохранённость |
+| `test_should_clear_translation_when_source_loaded_successfully` | `tests/test_unsaved_translation.py` | A0099 | happy | — | очистка после загрузки |
+| `test_should_show_unsaved_dialog_when_user_translates_with_unsaved_text` | `tests/test_unsaved_warning.py` | FT-032; US-006 AC1 | negative | dialog | «Перевести» |
+| `test_should_not_start_translation_when_user_cancels_unsaved_dialog` | `tests/test_unsaved_warning.py` | FT-032; A0098; NFT-008 | negative | dialog | отмена, поля на месте |
+| `test_should_replace_translation_when_user_confirms_unsaved_and_translates` | `tests/test_unsaved_warning.py` | FT-032; FT-035; US-006 AC1 | happy | success | замена поля |
+| `test_should_show_unsaved_dialog_when_user_opens_file_with_unsaved_text` | `tests/test_unsaved_warning.py` | FT-032; US-006 AC2 | negative | dialog | «Открыть файл» |
+| `test_should_keep_fields_when_user_cancels_unsaved_dialog_before_open_file` | `tests/test_unsaved_warning.py` | FT-032; A0098; NFT-008 | negative | dialog | отмена открытия |
+| `test_should_clear_translation_when_source_loaded_after_unsaved_confirm` | `tests/test_unsaved_warning.py` | A0099; US-006 AC2 | happy | — | загрузка очищает перевод |
+| `test_should_not_show_unsaved_dialog_when_translation_is_empty` | `tests/test_unsaved_warning.py` | FT-032; US-006 AC4 | edge | empty | пустое поле |
+| `test_should_not_show_unsaved_dialog_when_translation_was_saved` | `tests/test_unsaved_warning.py` | FT-032; FT-004; US-006 AC3 | happy | — | после «Сохранить перевод» |
+| `test_should_show_unsaved_dialog_when_user_edits_after_save` | `tests/test_unsaved_warning.py` | FT-033; A0106 | negative | dialog | правка сбрасывает сохранённость |
+| `test_should_not_show_unsaved_dialog_when_only_direction_changes` | `tests/test_unsaved_warning.py` | FT-053; A0124 | negative | — | не триггер FT-032 |
+| `test_should_ask_empty_instruction_after_unsaved_confirm_when_both_apply` | `tests/test_unsaved_warning.py` | A0102 | edge | dialog | FT-032 затем FT-029 |
+| `test_should_show_unsaved_dialog_when_incomplete_translation_is_not_saved` | `tests/test_unsaved_warning.py` | A0097; US-006 AC4 | negative | dialog | неполный перевод |

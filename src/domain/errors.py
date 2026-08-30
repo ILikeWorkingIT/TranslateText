@@ -29,6 +29,10 @@ class EmptyInstructionError(AppLayerError):
     """Пустая кастомная инструкция без согласия Пользователя."""
 
 
+class UnsavedTranslationError(AppLayerError):
+    """Несохранённый перевод без подтверждения UC-006 (FT-032)."""
+
+
 class QueueBusyError(AppLayerError):
     """Повторный старт перевода, пока очередь inProgress."""
 

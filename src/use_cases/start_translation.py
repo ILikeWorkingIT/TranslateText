@@ -7,6 +7,7 @@ from typing import Literal
 from domain.errors import AppLayerError, EmptyInstructionError, QueueBusyError
 from domain.models import Fragment, OllamaPort, QueueEvent, StartTranslationCommand
 from services.split_text import SplitText
+from use_cases.unsaved_translation import require_unsaved_confirmed
 
 IncompleteCause = Literal["none", "cancelled", "ollama"]
 
@@ -48,6 +49,11 @@ class StartTranslation:
     ) -> None:
         if self._busy:
             raise QueueBusyError("queue inProgress")
+        require_unsaved_confirmed(
+            command.translation_text,
+            command.translation_saved,
+            confirmed=command.unsaved_confirmed,
+        )
         require_ready_instruction(command.instruction)
         fragments = self._split_text.split(command.original_text)
         if not fragments:

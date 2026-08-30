@@ -18,11 +18,13 @@ from ui.messages import (
     HINT_NO_TEXT,
     HINT_OLLAMA_DOWN,
     MSG_EMPTY_INSTRUCTION,
+    MSG_UNSAVED_TRANSLATION,
     STATUS_OLLAMA_UNAVAILABLE,
     STATUS_SOURCE_LIMIT_EXCEEDED,
     STATUS_TRANSLATION_CANCELLED,
     STATUS_TRANSLATION_INCOMPLETE,
     TITLE_EMPTY_INSTRUCTION,
+    TITLE_UNSAVED_TRANSLATION,
     base_prompt_for_direction,
     translation_label_for_direction,
 )
@@ -68,6 +70,7 @@ class TranslateTextWindow(ctk.CTk):
         self._applying_models = False
         self._ollama_availability: OllamaAvailability = "unknown"
         self._direction = DIRECTION_EN_RU
+        self._translation_saved = True
         self._paste_alive = True
         self._ui_callbacks: queue.SimpleQueue[Callable[[], None]] = queue.SimpleQueue()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -175,16 +178,31 @@ class TranslateTextWindow(ctk.CTk):
                 original_insert(index, text)
             else:
                 original_insert(index, text, tags)
+            self._sync_translation_saved_if_needed(box)
             self._refresh_action_states()
 
         def delete(index1: str, index2: str | None = None) -> None:
             original_delete(index1, index2)
+            self._sync_translation_saved_if_needed(box)
             self._refresh_action_states()
 
         box.insert = insert
         box.delete = delete
-        box.bind("<KeyRelease>", lambda _event: self._refresh_action_states())
+        box.bind(
+            "<KeyRelease>",
+            lambda _event, watched=box: self._on_textbox_key_release(watched),
+        )
         self._enable_field_paste(box)
+
+    def _on_textbox_key_release(self, box: ctk.CTkTextbox) -> None:
+        self._sync_translation_saved_if_needed(box)
+        self._refresh_action_states()
+
+    def _sync_translation_saved_if_needed(self, box: ctk.CTkTextbox) -> None:
+        translation = getattr(self, "translation", None)
+        if translation is None or box is not translation:
+            return
+        self._translation_saved = len(self._text_of(self.translation)) == 0
 
     def _enable_field_paste(self, box: ctk.CTkTextbox) -> None:
         def on_paste(_event: tkinter.Event) -> str:
@@ -567,10 +585,26 @@ class TranslateTextWindow(ctk.CTk):
         self._translation_bridge.cancel()
 
     def _on_open_file(self) -> None:
+        if not self._confirm_unsaved_if_needed():
+            return
+        self._continue_open_file()
+
+    def _continue_open_file(self) -> None:
+        """UC-002 после UC-006. Извлечение файла — срез S-11."""
         return
 
+    def _apply_loaded_source(self, text: str) -> None:
+        """A0099: успешная загрузка исходника очищает поле перевода."""
+        self.original.delete("0.0", "end")
+        if text:
+            self.original.insert("0.0", text)
+        self._set_translation_text("")
+        self._translation_saved = True
+
     def _on_save_translation(self) -> None:
-        return
+        if len(self._text_of(self.translation)) == 0:
+            return
+        self._translation_saved = True
 
     def _on_translate(self) -> None:
         if self._translation_in_progress():
@@ -579,6 +613,8 @@ class TranslateTextWindow(ctk.CTk):
             return
         original = self._text_of(self.original)
         if len(original) == 0:
+            return
+        if not self._confirm_unsaved_if_needed():
             return
         instruction = self._text_of(self.instruction)
         if len(instruction) == 0:
@@ -593,6 +629,17 @@ class TranslateTextWindow(ctk.CTk):
             original_text=original,
             instruction=instruction,
             model=model,
+        )
+
+    def _confirm_unsaved_if_needed(self) -> bool:
+        """FT-032: до FT-029 (A0102). Смена направления сюда не входит (FT-053)."""
+        text = self._text_of(self.translation)
+        if len(text) == 0 or self._translation_saved:
+            return True
+        return messagebox.askokcancel(
+            TITLE_UNSAVED_TRANSLATION,
+            MSG_UNSAVED_TRANSLATION,
+            parent=self,
         )
 
     def _confirm_empty_instruction(self) -> bool:
@@ -620,6 +667,9 @@ class TranslateTextWindow(ctk.CTk):
             model=model,
             direction=self._direction,
             instruction_confirmed=True,
+            translation_text=self._text_of(self.translation),
+            translation_saved=self._translation_saved,
+            unsaved_confirmed=True,
         )
 
     def _on_source_limit_exceeded(self) -> None:

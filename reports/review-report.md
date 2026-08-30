@@ -4,37 +4,50 @@
 
 ## Манифест стадии
 
-- stage-id: S-08
-- команда из `.cursor/list-commands.md`: срез чеклиста; слои `/app-layer` + `/frontend` (хром статуса уже был)
-- исполнитель: back-developer, tester; канон — analyst (`A0158`)
+- stage-id: S-09
+- команда из `.cursor/list-commands.md`: срез чеклиста; слои `/app-layer` + `/frontend`
+- исполнитель: back-developer, front-developer, tester
 - дата: 2026-08-30
 
 ## Артефакты
 
 | Ожидаемый путь | Есть | Замечание |
 | --- | --- | --- |
-| `reports/checklist.md` (S-08) | да | `[x]`; ручная приёмка отмены зафиксирована как A0158 |
-| `src/services/ollama_gateway.py` | да | timeout 60 с, OllamaTimeoutError / OllamaModelError |
-| `src/use_cases/start_translation.py` | да | incomplete, склейка, стоп очереди |
-| `src/ui/layout.py` | да | STATUS_TRANSLATION_INCOMPLETE; код по просьбе не менялся |
-| `tests/test_start_translation.py`, `tests/test_ollama_gateway.py`, `tests/test_translation_incomplete.py` | да | FT-028 |
-| `reports/test-run.md` | да | 135 passed |
-| `requirements/answers-project.md` | да | A0158 |
+| `reports/checklist.md` (S-09) | да | `[x]`; ручная приёмка 7 шагов — чат 2026-08-30 |
+| `src/use_cases/unsaved_translation.py` | да | гейт `translationSaved` / UC-006 |
+| `src/use_cases/start_translation.py` | да | `require_unsaved_confirmed` до очереди и FT-029 |
+| `src/ui/layout.py`, `src/ui/messages.py` | да | диалог FT-032; порядок FT-032 → FT-029 |
+| `src/ui/bridge.py` | да | поля команды и `UnsavedTranslationError` |
+| `tests/test_unsaved_translation.py`, `tests/test_unsaved_warning.py` | да | unit + GUI |
+| `reports/test-run.md` | да | 157 passed |
 
 ## Чек-лист верификации
 
 | # | Критерий | Результат | Заметка |
 | --- | --- | --- | --- |
-| 1 | Артефакт на правильном пути | pass | |
-| 2 | Нет правок вне Input Manifest роли | pass | продукт S-08 не менялся в этом ходе; канон — requirements |
-| 3 | Существующий точечный скилл не затёрт | pass | |
-| 4 | Критерии приёмки стадии проверяемы | pass | FT-028 автотесты; дожитие отмены — A0158 |
+| 1 | Артефакт на правильном пути | pass | слой в `domain/` / `use_cases/` / `bridge.py`; хром в `layout.py` / `messages.py` |
+| 2 | Нет правок вне Input Manifest роли | pass | нет FastAPI; `ExtractSource` и диалог файла не тащились (S-11 / S-10) |
+| 3 | Существующий точечный скилл не затёрт | pass | `/app-layer`, `/frontend` указывают на те же скиллы |
+| 4 | Критерии приёмки стадии проверяемы | pass | автотесты + ручные 7 шагов; A0099 в хуке до загрузки файла (S-11) |
+
+## Критерии «срез готов»
+
+| Критерий | Результат | Заметка |
+| --- | --- | --- |
+| Предупреждение перед «Перевести» и «Открыть файл» | pass | GUI + ручная приёмка |
+| Отмена не меняет поля и не стартует перевод / загрузку | pass | |
+| Подтверждение «Перевести» заменяет поле (FT-035) | pass | |
+| Подтверждение «Открыть файл» + успех очищает перевод (A0099) | pass | автотест `_apply_loaded_source`; живой файл — S-11 |
+| После «Сохранить перевод» без правок предупреждения нет | pass | флаг сохранённости; запись на диск — S-10 |
+| Пустое поле — без предупреждения | pass | |
+| Смена направления не показывает FT-032 (FT-053) | pass | |
 
 ## Замечания
 
 | ID | Уровень | Суть | Где |
 | --- | --- | --- | --- |
-| — | — | нет | — |
+| S09-1 | minor | «Открыть файл» после подтверждения UC-006 файл не читает (`_continue_open_file` пустой). A0099 срабатывает при `_apply_loaded_source`. Это граница S-11, не дыра FT-032. | `src/ui/layout.py` |
+| S09-2 | minor | «Сохранить перевод» ставит `translationSaved` без диалога ОС и без записи. Сохранённость FT-004 для предупреждения есть; выгрузка — S-10. | `src/ui/layout.py` `_on_save_translation` |
 
 ## Вердикт
 

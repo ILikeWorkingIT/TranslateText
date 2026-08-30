@@ -197,10 +197,12 @@ def test_should_enable_translate_when_translation_finishes(open_window):
 
 
 def test_should_replace_previous_translation_when_user_translates_again(
+    monkeypatch,
     open_window,
 ):
     """FT-035, US-001 AC3, happy: новый запуск заменяет поле перевода, не дописывает."""
     app, port = open_window(DEFAULT_FAKE_MODELS)
+    monkeypatch.setattr("ui.layout.messagebox.askokcancel", lambda *_a, **_k: True)
     port.translation_result = "Первый"
     _fill_original(app, "One")
     _click_translate(app)

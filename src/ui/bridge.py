@@ -9,6 +9,7 @@ from domain.errors import (
     EmptyInstructionError,
     OllamaUnavailableError,
     SourceLimitExceededError,
+    UnsavedTranslationError,
 )
 from domain.models import (
     ModelsRefreshedEvent,
@@ -19,6 +20,7 @@ from domain.models import (
 )
 from use_cases.refresh_models import RefreshModels
 from use_cases.start_translation import StartTranslation, require_ready_instruction
+from use_cases.unsaved_translation import require_unsaved_confirmed
 
 
 class UiHost(Protocol):
@@ -121,6 +123,9 @@ class TranslationBridge:
         model: str,
         direction: str,
         instruction_confirmed: bool | None = None,
+        translation_text: str = "",
+        translation_saved: bool = True,
+        unsaved_confirmed: bool = False,
     ) -> None:
         if self._stop.is_set():
             return
@@ -128,6 +133,11 @@ class TranslationBridge:
             len(instruction) > 0
             if instruction_confirmed is None
             else instruction_confirmed
+        )
+        require_unsaved_confirmed(
+            translation_text,
+            translation_saved,
+            confirmed=unsaved_confirmed,
         )
         require_ready_instruction(instruction)
         self._cancel.clear()
@@ -139,6 +149,9 @@ class TranslationBridge:
             instruction_confirmed=confirmed,
             model=model,
             direction=direction,
+            translation_text=translation_text,
+            translation_saved=translation_saved,
+            unsaved_confirmed=unsaved_confirmed,
         )
         worker = threading.Thread(
             target=self._worker,
@@ -169,6 +182,8 @@ class TranslationBridge:
                 cancel_event=self._cancel,
             )
         except EmptyInstructionError:
+            return
+        except UnsavedTranslationError:
             return
         except SourceLimitExceededError:
             if self._stop.is_set():
