@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import queue
 import tkinter
+from collections.abc import Callable
+from tkinter import messagebox
 from typing import Literal
 
 import customtkinter as ctk
@@ -14,7 +17,11 @@ from ui.messages import (
     HINT_IN_PROGRESS,
     HINT_NO_TEXT,
     HINT_OLLAMA_DOWN,
+    MSG_EMPTY_INSTRUCTION,
     STATUS_OLLAMA_UNAVAILABLE,
+    STATUS_SOURCE_LIMIT_EXCEEDED,
+    STATUS_TRANSLATION_INCOMPLETE,
+    TITLE_EMPTY_INSTRUCTION,
     base_prompt_for_direction,
     translation_label_for_direction,
 )
@@ -39,6 +46,7 @@ class TranslateTextWindow(ctk.CTk):
         self._ollama_availability: OllamaAvailability = "unknown"
         self._direction = DIRECTION_EN_RU
         self._paste_alive = True
+        self._ui_callbacks: queue.SimpleQueue[Callable[[], None]] = queue.SimpleQueue()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build()
         self._models_bridge = ModelsBridge(
@@ -51,9 +59,28 @@ class TranslateTextWindow(ctk.CTk):
             host=self,
             ollama=OllamaGateway(),
             on_event=self._on_queue_event,
+            on_source_limit_exceeded=self._on_source_limit_exceeded,
         )
         self._bind_model_refresh_triggers()
         self._request_models_refresh()
+        self.after(20, self._poll_ui_callbacks)
+
+    def call_on_ui(self, callback: Callable[[], None]) -> None:
+        """Колбэки из воркера — только через очередь главного потока Tk."""
+        self._ui_callbacks.put(callback)
+
+    def _poll_ui_callbacks(self) -> None:
+        while True:
+            try:
+                callback = self._ui_callbacks.get_nowait()
+            except queue.Empty:
+                break
+            try:
+                callback()
+            except tkinter.TclError:
+                pass
+        if self._paste_alive:
+            self.after(20, self._poll_ui_callbacks)
 
     def _build(self) -> None:
         self.grid_columnconfigure(0, weight=1)
@@ -441,29 +468,71 @@ class TranslateTextWindow(ctk.CTk):
             return
         instruction = self._text_of(self.instruction)
         if len(instruction) == 0:
-            return
+            if not self._confirm_empty_instruction():
+                return
+            instruction = base_prompt_for_direction(self._direction)
+            self._set_instruction_text(instruction)
         model = str(self.model.get())
         if not model:
             return
+        self._begin_translation(
+            original_text=original,
+            instruction=instruction,
+            model=model,
+        )
+
+    def _confirm_empty_instruction(self) -> bool:
+        """FT-029: согласие или отмена; NFT-002 считается после согласия."""
+        return messagebox.askokcancel(
+            TITLE_EMPTY_INSTRUCTION,
+            MSG_EMPTY_INSTRUCTION,
+            parent=self,
+        )
+
+    def _begin_translation(
+        self,
+        *,
+        original_text: str,
+        instruction: str,
+        model: str,
+    ) -> None:
         self._ui_state = "loading"
         self.progress.set(0)
         self._refresh_action_states()
         self._translation_bridge.start(
-            original_text=original,
+            original_text=original_text,
             instruction=instruction,
             model=model,
             direction=self._direction,
+            instruction_confirmed=True,
         )
+
+    def _on_source_limit_exceeded(self) -> None:
+        """FT-023: отказ без Ollama; оригинал не обрезается."""
+        self._ui_state = "idle"
+        self.progress.set(0)
+        self._refresh_action_states()
+        self.status.configure(text=STATUS_SOURCE_LIMIT_EXCEEDED)
 
     def _on_queue_event(self, event: QueueEvent) -> None:
         if event.status == "inProgress":
             self._set_progress_from_event(event)
+            if event.translation_so_far:
+                self._set_translation_text(event.translation_so_far)
             return
         if event.status == "completed":
             self._set_translation_text(event.translation_so_far)
             self.progress.set(1)
             self._ui_state = "idle"
             self._refresh_action_states()
+            return
+        if event.status == "incomplete":
+            if event.translation_so_far:
+                self._set_translation_text(event.translation_so_far)
+            self._set_progress_from_event(event)
+            self._ui_state = "idle"
+            self._refresh_action_states()
+            self.status.configure(text=STATUS_TRANSLATION_INCOMPLETE)
             return
         self._ui_state = "idle"
         self._refresh_action_states()

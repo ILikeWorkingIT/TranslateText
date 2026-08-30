@@ -2,7 +2,7 @@
 
 Поверхность: desktop (CustomTkinter). Раннер: pytest. Прогон — команда `/use-tests`.
 
-Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
+Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Срез S-05: пустая инструкция — диалог FT-029, согласие или отмена, базовый промпт текущего направления. Срез S-06: лимит 100 000 символов Unicode — поле держит >100k, отказ при «Перевести» без Ollama. Срез S-07: нарезка по абзацам (>5000 → несколько фрагментов), очередь перевода, прогресс по доле исходника, склейка в поле перевода. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
 
 | Тест | Файл | Требования | Слой | Состояние UI | Примечание |
 | --- | --- | --- | --- | --- | --- |
@@ -65,3 +65,30 @@
 | `test_should_replace_previous_translation_when_user_translates_again` | `tests/test_translation.py` | FT-035; US-001 AC3 | happy | success | не конкатенация |
 | `test_should_keep_request_snapshot_when_fields_change_during_translation` | `tests/test_translation.py` | FT-011; NFT-014; A0052 | edge | loading | клик «Модель» не убивает перевод |
 | `test_should_post_chat_to_local_ollama_when_translating_fragment` | `tests/test_ollama_gateway.py` | FT-012; FT-013 | happy | — | MockTransport POST /api/chat |
+| `test_should_raise_empty_instruction_when_instruction_empty_and_not_confirmed` | `tests/test_start_translation.py` | FT-029; A0050 | negative | — | без GUI; Ollama не вызывается |
+| `test_should_not_substitute_prompt_when_instruction_empty_even_if_confirmed` | `tests/test_start_translation.py` | FT-029 | negative | — | слой не подставляет промпт |
+| `test_should_start_with_snapshot_when_instruction_already_nonempty` | `tests/test_start_translation.py` | FT-011; FT-029 | happy | — | снимок непустой инструкции |
+| `test_should_use_en_ru_prompt_in_snapshot_when_start_after_consent` | `tests/test_start_translation.py` | FT-029; A0006; A0050 | happy | — | снимок после согласия EN→RU |
+| `test_should_use_ru_en_prompt_in_snapshot_when_start_after_consent` | `tests/test_start_translation.py` | FT-029; A0122 | happy | — | снимок после согласия RU→EN |
+| `test_should_raise_empty_instruction_when_bridge_starts_without_ready_prompt` | `tests/test_start_translation.py` | FT-029 | negative | — | клей не стартует воркер |
+| `test_should_reject_empty_instruction_when_require_ready_is_called` | `tests/test_start_translation.py` | FT-029 | negative | — | общий гейт |
+| `test_should_enable_translate_when_instruction_is_empty_but_original_has_text` | `tests/test_empty_instruction.py` | FT-029 | edge | — | кнопка доступна |
+| `test_should_show_empty_instruction_dialog_when_user_translates_without_instruction` | `tests/test_empty_instruction.py` | FT-029; US-005 AC3 | negative | dialog | askokcancel с каноном |
+| `test_should_not_start_translation_when_user_cancels_empty_instruction_dialog` | `tests/test_empty_instruction.py` | FT-029; US-005 AC4; A0050 | negative | dialog | отмена без Ollama |
+| `test_should_fill_base_prompt_and_translate_when_user_confirms_en_ru` | `tests/test_empty_instruction.py` | FT-029; A0006; A0050 | happy | success | согласие EN→RU |
+| `test_should_fill_ru_en_base_prompt_and_translate_when_user_confirms_ru_en` | `tests/test_empty_instruction.py` | FT-029; A0122 | happy | success | согласие RU→EN |
+| `test_should_return_one_fragment_when_text_is_at_most_5000_chars` | `tests/test_split_text.py` | FT-016 | happy | — | SplitText без GUI |
+| `test_should_split_into_multiple_fragments_when_text_exceeds_5000_with_paragraphs` | `tests/test_split_text.py` | FT-015; FT-018; FT-019 | happy | — | два абзаца по 3000 |
+| `test_should_preserve_paragraphs_in_single_fragment_when_total_under_5000` | `tests/test_split_text.py` | FT-018 | edge | — | упаковка в один фрагмент |
+| `test_should_split_on_blank_line_when_text_uses_crlf` | `tests/test_split_text.py` | FT-018 | edge | — | Windows `\r\n\r\n` |
+| `test_should_glue_translation_when_long_text_splits_into_fragments` | `tests/test_fragment_queue.py` | FT-015; FT-020 | happy | success | UI + очередь |
+| `test_should_raise_source_limit_when_text_exceeds_100000_chars` | `tests/test_split_text.py` | FT-023; A0036 | negative | — | SourceLimitExceededError |
+| `test_should_allow_exactly_100000_chars` | `tests/test_split_text.py` | FT-023 | edge | — | ровно 100k |
+| `test_should_translate_fragments_sequentially_when_text_exceeds_5000` | `tests/test_start_translation.py` | FT-015; FT-019; FT-020 | happy | — | очередь, склейка |
+| `test_should_emit_progress_after_each_fragment_when_queue_runs` | `tests/test_start_translation.py` | FT-022; NFT-005 | happy | — | processed_source_chars |
+| `test_should_keep_over_limit_text_in_field_before_translate` | `tests/test_source_limit.py` | FT-014 | happy | — | поле >100k |
+| `test_should_not_call_ollama_when_user_translates_over_limit_text` | `tests/test_source_limit.py` | FT-023; US-001 AC4 | negative | error | без Ollama |
+| `test_should_keep_original_when_user_translates_over_limit_text` | `tests/test_source_limit.py` | FT-023; A0036 | negative | error | не урезать |
+| `test_should_show_limit_message_when_user_translates_over_limit_text` | `tests/test_source_limit.py` | FT-023; A0007 | negative | error | строка статуса |
+| `test_should_enable_translate_when_original_exceeds_limit` | `tests/test_source_limit.py` | FT-014 | edge | — | кнопка до «Перевести» |
+| `test_should_translate_when_original_is_exactly_100000_chars` | `tests/test_source_limit.py` | FT-023 | edge | success | ровно 100k OK |

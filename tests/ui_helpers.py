@@ -114,6 +114,13 @@ class WorkerAfterMixin:
             return super().after(ms)
         return super().after(ms, func, *args)
 
+    def call_on_ui(self, callback: Callable[[], None]) -> None:
+        if threading.current_thread() is threading.main_thread():
+            callback()
+            return
+        with self._after_lock:
+            self._after_from_worker.append((callback, ()))
+
     def drain_worker_after(self) -> None:
         with self._after_lock:
             jobs = list(self._after_from_worker)

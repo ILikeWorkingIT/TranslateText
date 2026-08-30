@@ -4,7 +4,12 @@ import threading
 from collections.abc import Callable
 from typing import Protocol
 
-from domain.errors import AppLayerError, OllamaUnavailableError
+from domain.errors import (
+    AppLayerError,
+    EmptyInstructionError,
+    OllamaUnavailableError,
+    SourceLimitExceededError,
+)
 from domain.models import (
     ModelsRefreshedEvent,
     OllamaPort,
@@ -13,11 +18,11 @@ from domain.models import (
     StartTranslationCommand,
 )
 from use_cases.refresh_models import RefreshModels
-from use_cases.start_translation import StartTranslation
+from use_cases.start_translation import StartTranslation, require_ready_instruction
 
 
 class UiHost(Protocol):
-    def after(self, ms: int, func: Callable[[], None]) -> str: ...
+    def call_on_ui(self, func: Callable[[], None]) -> None: ...
 
     def winfo_exists(self) -> bool: ...
 
@@ -64,13 +69,13 @@ class ModelsBridge:
         except OllamaUnavailableError:
             if self._stop.is_set():
                 return
-            self._host.after(
-                0, lambda rid=command.request_id: self._apply_unavailable(rid)
+            self._host.call_on_ui(
+                lambda rid=command.request_id: self._apply_unavailable(rid)
             )
             return
         if self._stop.is_set():
             return
-        self._host.after(0, lambda delivered=event: self._apply(delivered))
+        self._host.call_on_ui(lambda delivered=event: self._apply(delivered))
 
     def _apply(self, event: ModelsRefreshedEvent) -> None:
         if not self._can_apply(event.request_id):
@@ -97,11 +102,13 @@ class TranslationBridge:
         host: UiHost,
         ollama: OllamaPort,
         on_event: Callable[[QueueEvent], None],
+        on_source_limit_exceeded: Callable[[], None] | None = None,
     ) -> None:
         self._host = host
         self._ollama = ollama
         self._use_case = StartTranslation(ollama)
         self._on_event = on_event
+        self._on_source_limit_exceeded = on_source_limit_exceeded
         self._stop = threading.Event()
         self.translation_request_id = 0
 
@@ -112,15 +119,22 @@ class TranslationBridge:
         instruction: str,
         model: str,
         direction: str,
+        instruction_confirmed: bool | None = None,
     ) -> None:
         if self._stop.is_set():
             return
+        confirmed = (
+            len(instruction) > 0
+            if instruction_confirmed is None
+            else instruction_confirmed
+        )
+        require_ready_instruction(instruction)
         self.translation_request_id += 1
         command = StartTranslationCommand(
             request_id=self.translation_request_id,
             original_text=original_text,
             instruction=instruction,
-            instruction_confirmed=len(instruction) > 0,
+            instruction_confirmed=confirmed,
             model=model,
             direction=direction,
         )
@@ -139,7 +153,7 @@ class TranslationBridge:
         def emit(event: QueueEvent) -> None:
             if self._stop.is_set():
                 return
-            self._host.after(0, lambda delivered=event: self._apply(delivered))
+            self._host.call_on_ui(lambda delivered=event: self._apply(delivered))
 
         try:
             self._use_case.run(
@@ -147,11 +161,16 @@ class TranslationBridge:
                 stop_event=self._stop,
                 on_event=emit,
             )
+        except EmptyInstructionError:
+            return
+        except SourceLimitExceededError:
+            if self._stop.is_set():
+                return
+            self._host.call_on_ui(self._apply_source_limit_exceeded)
         except AppLayerError:
             if self._stop.is_set():
                 return
-            self._host.after(
-                0,
+            self._host.call_on_ui(
                 lambda rid=command.request_id: self._apply(
                     QueueEvent(
                         request_id=rid,
@@ -163,6 +182,13 @@ class TranslationBridge:
                     )
                 ),
             )
+
+    def _apply_source_limit_exceeded(self) -> None:
+        if self._on_source_limit_exceeded is None:
+            return
+        if not self._host.winfo_exists():
+            return
+        self._on_source_limit_exceeded()
 
     def _apply(self, event: QueueEvent) -> None:
         if not self._can_apply(event.request_id):

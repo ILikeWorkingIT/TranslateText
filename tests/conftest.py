@@ -11,7 +11,7 @@ for path in (SRC, TESTS):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from domain.errors import OllamaUnavailableError
+from domain.errors import AppLayerError, OllamaUnavailableError
 from ui_helpers import (
     WorkerAfterMixin,
     combo_values,
@@ -28,6 +28,8 @@ class RecordingOllama:
         self.list_calls = 0
         self.translate_calls: list[tuple[str, str, str]] = []
         self.translation_result = "Привет"
+        self.translation_results: tuple[str, ...] | None = None
+        self.translate_error: AppLayerError | None = None
         self.translate_hold: threading.Event | None = None
 
     def list_models(self) -> tuple[str, ...]:
@@ -43,6 +45,12 @@ class RecordingOllama:
         hold = self.translate_hold
         if hold is not None:
             hold.wait(timeout=10)
+        if self.translate_error is not None:
+            raise self.translate_error
+        if self.translation_results is not None:
+            index = len(self.translate_calls) - 1
+            if index < len(self.translation_results):
+                return self.translation_results[index]
         return self.translation_result
 
     def close(self) -> None:

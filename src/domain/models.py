@@ -6,6 +6,18 @@ from typing import Literal, Protocol
 PREFERRED_MODEL = "qwen2.5:3b"
 
 
+MAX_SOURCE_CHARS = 100_000
+MAX_FRAGMENT_CHARS = 5000
+TARGET_FRAGMENT_CHARS_MIN = 500
+TARGET_FRAGMENT_CHARS_MAX = 700
+
+
+@dataclass(frozen=True)
+class Fragment:
+    order: int
+    source: str
+
+
 class OllamaPort(Protocol):
     def list_models(self) -> tuple[str, ...]: ...
 

@@ -61,7 +61,7 @@ class OllamaGateway:
         except (ValueError, TypeError) as exc:
             raise OllamaModelError(str(exc)) from exc
         content = _assistant_content(body)
-        if content is None:
+        if content is None or len(content.strip()) == 0:
             raise OllamaModelError("empty translation")
         return content
 
