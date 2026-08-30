@@ -32,10 +32,14 @@ class RecordingOllama:
         self.translation_results: tuple[str, ...] | None = None
         self.translate_error: AppLayerError | None = None
         self.translate_hold: threading.Event | None = None
+        self.list_hold: threading.Event | None = None
         self.error_from_call: int | None = None
 
     def list_models(self) -> tuple[str, ...]:
         self.list_calls += 1
+        hold = self.list_hold
+        if hold is not None:
+            hold.wait(timeout=10)
         if not self.names:
             raise OllamaUnavailableError("empty model list")
         return tuple(self.names)
@@ -94,6 +98,8 @@ def open_window(monkeypatch):
     for port in ports:
         if port.translate_hold is not None:
             port.translate_hold.set()
+        if port.list_hold is not None:
+            port.list_hold.set()
     for app in apps:
         for attr in ("_status_after", "_hint_leave_after"):
             after_id = getattr(app, attr, "")

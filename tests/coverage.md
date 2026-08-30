@@ -49,6 +49,7 @@
 | `test_should_update_model_list_when_user_clicks_model` | `tests/test_model_list.py` | FT-045; NFT-013 | happy | — | клик, без пересборки окна |
 | `test_should_update_model_list_when_model_receives_focus` | `tests/test_model_list.py` | FT-045; A0055 | happy | — | |
 | `test_should_keep_selected_model_when_it_remains_in_new_response` | `tests/test_model_list.py` | FT-045; A0053 | happy | — | |
+| `test_should_keep_user_pick_when_refresh_started_with_old_model` | `tests/test_model_list.py` | FT-045; A0053 | edge | — | выбор во время опроса |
 | `test_should_select_default_when_current_model_missing_after_refresh` | `tests/test_model_list.py` | FT-045; A0053 | edge | — | |
 | `test_should_not_poll_models_when_window_gains_focus` | `tests/test_model_list.py` | A0079 | negative | — | не опрос при фокусе окна |
 | `test_should_show_start_ollama_status_when_api_is_unavailable` | `tests/test_ollama_unavailable.py` | FT-024; NFT-011; US-007 AC1 | negative | error | `start_ollama.bat` и `F:\Docker\Ollama` в статусе |

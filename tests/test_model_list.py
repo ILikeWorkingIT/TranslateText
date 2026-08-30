@@ -1,5 +1,7 @@
 """S-02: список «Модель» из локального API при старте, клике и фокусе."""
 
+import threading
+
 from conftest import DEFAULT_FAKE_MODELS
 from ui_helpers import (
     combo_values,
@@ -68,6 +70,25 @@ def test_should_keep_selected_model_when_it_remains_in_new_response(open_window)
     pump_until(app, lambda: "phi3" in combo_values(app.model))
     assert app.model.get() == "llama3.2", (
         "после повторного опроса выбранная модель сохраняется, если она есть в новом ответе"
+    )
+
+
+def test_should_keep_user_pick_when_refresh_started_with_old_model(open_window):
+    """FT-045, A0053, edge: выбор во время опроса не затирается ответом со старым current."""
+    app, port = open_window(("qwen2.5:3b", "qwen2.5:7b"))
+    assert app.model.get() == "qwen2.5:3b"
+    hold = threading.Event()
+    port.list_hold = hold
+    trigger_model_click(app)
+    pump_until(app, lambda: port.list_calls >= 2)
+    app.model.set("qwen2.5:7b")
+    app.update_idletasks()
+    hold.set()
+    for _ in range(40):
+        app.update()
+    assert app.model.get() == "qwen2.5:7b", (
+        "если Пользователь сменил модель, пока шёл опрос после клика, "
+        "ответ опроса не возвращает прежнюю qwen2.5:3b"
     )
 
 

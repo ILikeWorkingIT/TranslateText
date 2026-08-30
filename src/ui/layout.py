@@ -486,8 +486,14 @@ class TranslateTextWindow(ctk.CTk):
         self._applying_models = True
         try:
             self._ollama_availability = "available"
+            # Выбор мог смениться, пока шёл опрос (клик открыл список → refresh
+            # со старой моделью → пользователь уже выбрал другую). Не затирать.
+            live = str(self.model.get())
             self.model.configure(values=list(event.models))
-            self.model.set(event.selected_model)
+            if live in event.models:
+                self.model.set(live)
+            else:
+                self.model.set(event.selected_model)
         finally:
             self._applying_models = False
         self._refresh_action_states()
