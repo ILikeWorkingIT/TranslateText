@@ -254,3 +254,38 @@ def test_should_never_exceed_hard_cap_5000_chars_per_fragment() -> None:
     fragments = SplitText().split(part)
     assert all(len(fragment.source) <= MAX_FRAGMENT_CHARS for fragment in fragments)
     assert "".join(fragment.source for fragment in fragments) == part
+
+
+def _assert_words_not_split(sources: list[str]) -> None:
+    for left, right in zip(sources, sources[1:]):
+        if left and right and left[-1].isalnum() and right[0].isalnum():
+            raise AssertionError(
+                f"слово разорвано: ...{left[-24:]!r} | {right[:24]!r}"
+            )
+
+
+def test_should_split_paragraph_over_5000_on_sentences_without_breaking_words() -> None:
+    """FT-025, S-07b: один абзац >5000 — несколько фрагментов, слово не рвать."""
+    sentence = "This is a complete sentence about translation quality. "
+    text = sentence * 100
+    assert "\n\n" not in text
+    assert len(text) > MAX_FRAGMENT_CHARS
+    fragments = SplitText().split(text)
+    sources = [fragment.source for fragment in fragments]
+    assert len(fragments) >= 2
+    assert all(len(fragment.source) <= MAX_FRAGMENT_CHARS for fragment in fragments)
+    assert "".join(sources) == text
+    _assert_words_not_split(sources)
+
+
+def test_should_keep_word_intact_when_sentence_exceeds_5000() -> None:
+    """FT-025: предложение >5000, слово длиннее 700 и короче 5000 — целиком."""
+    long_word = "W" * 800
+    text = ("word " * 900) + long_word + " end."
+    assert len(text) > MAX_FRAGMENT_CHARS
+    fragments = SplitText().split(text)
+    sources = [fragment.source for fragment in fragments]
+    assert any(long_word in source for source in sources)
+    assert all(len(fragment.source) <= MAX_FRAGMENT_CHARS for fragment in fragments)
+    assert "".join(sources) == text
+    _assert_words_not_split(sources)

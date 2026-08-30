@@ -110,3 +110,5 @@
 | `test_should_treat_cyrillic_es_as_copy_not_paste` | `tests/test_clipboard_copy.py` | B-001 | edge | — | keysym RU C ≠ paste |
 | `test_should_add_russian_example_when_direction_is_en_ru` | `tests/test_ollama_gateway.py` | A0006 | edge | — | few-shot EN→RU, без китайского срыва |
 | `test_should_add_english_example_when_direction_is_ru_en` | `tests/test_ollama_gateway.py` | A0122 | edge | — | few-shot RU→EN |
+| `test_should_split_paragraph_over_5000_on_sentences_without_breaking_words` | `tests/test_split_text.py` | FT-025 | happy | — | S-07b, абзац >5000 |
+| `test_should_keep_word_intact_when_sentence_exceeds_5000` | `tests/test_split_text.py` | FT-025 | edge | — | слово 800 < 5000 не рвать |

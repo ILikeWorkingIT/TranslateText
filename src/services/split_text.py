@@ -3,6 +3,7 @@ from __future__ import annotations
 from domain.errors import SourceLimitExceededError
 from domain.models import (
     Fragment,
+    MAX_FRAGMENT_CHARS,
     MAX_SOURCE_CHARS,
     TARGET_FRAGMENT_CHARS_MAX,
     TARGET_FRAGMENT_CHARS_MIN,
@@ -145,12 +146,28 @@ def _split_by_spaces(part: str, max_chars: int) -> list[str]:
         cut = len(window) - 1
         while cut >= 0 and not window[cut].isspace():
             cut -= 1
-        if cut < 0:
-            chunk = remaining[:max_chars]
-            remaining = remaining[max_chars:]
-        else:
+        if cut >= 0:
             chunk = remaining[: cut + 1]
             remaining = remaining[cut + 1 :]
+            chunks.append(chunk)
+            continue
+        token_end = 0
+        while token_end < len(remaining) and not remaining[token_end].isspace():
+            token_end += 1
+        has_space_after = token_end < len(remaining)
+        if has_space_after and token_end <= MAX_FRAGMENT_CHARS:
+            space_end = token_end
+            while space_end < len(remaining) and remaining[space_end].isspace():
+                space_end += 1
+            take = space_end if space_end <= MAX_FRAGMENT_CHARS else token_end
+            chunk = remaining[:take]
+            remaining = remaining[take:]
+        elif has_space_after:
+            chunk = remaining[:MAX_FRAGMENT_CHARS]
+            remaining = remaining[MAX_FRAGMENT_CHARS:]
+        else:
+            chunk = remaining[:max_chars]
+            remaining = remaining[max_chars:]
         chunks.append(chunk)
     return chunks
 
