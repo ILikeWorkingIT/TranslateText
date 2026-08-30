@@ -4,12 +4,12 @@
 
 ## Текущий этап
 
-- stage-id: S-07b
-- stage-name: Сверхдлинный абзац (FT-025)
-- status: idle
+- stage-id: S-07c
+- stage-name: Отмена перевода Пользователем (FT-054)
+- status: in-progress
 - approval: Stage: S-07: APPROVED; Stage: S-07b: APPROVED
-- исполнитель: back-developer
-- очередь: следующий срез **S-07c** (FT-054) — `/us` / `/uc`, затем `/app-layer` + `/frontend`
+- исполнитель: back-developer (S-07c app-layer); далее front-developer
+- очередь: `/frontend` (кнопка «Отменить перевод») → `/new-tests` / `/use-tests`
 
 `status`: `idle` | `in-progress` | `gate` | `blocked` | `awaiting-approval`.
 `approval`: пусто или `Stage: <stage-id>: APPROVED` (ставит ПМ только после фразы пользователя «утверждаю» / «принимаю этап»).
@@ -29,5 +29,7 @@
 
 - Сделано: `/use-tests` 2026-08-30 — 111 passed; отчёт `reports/test-run.md`
 - Сделано: утверждение S-07 и S-07b (чат)
-- Сделано: `A0146`–`A0150` — отмена очереди в MVP (FT-054), детали согласованы
-- Следующий срез: **S-07c** — отмена перевода; затем S-08
+- Сделано: US-010 / UC-010 согласованы (`A0156`)
+- Сделано: `/qc-us-uc` обработан — `A0157` (UC-010 §5.3)
+- Сделано: `/app-layer` S-07c — `cancel_event`, `QueueEvent.incomplete_cause`, `TranslationBridge.cancel`
+- Следующий шаг: `/frontend` (кнопка и статус отмены); строка QC §5.3 — по желанию; затем `/new-tests` / `/use-tests`

@@ -110,6 +110,7 @@ class TranslationBridge:
         self._on_event = on_event
         self._on_source_limit_exceeded = on_source_limit_exceeded
         self._stop = threading.Event()
+        self._cancel = threading.Event()
         self.translation_request_id = 0
 
     def start(
@@ -129,6 +130,7 @@ class TranslationBridge:
             else instruction_confirmed
         )
         require_ready_instruction(instruction)
+        self._cancel.clear()
         self.translation_request_id += 1
         command = StartTranslationCommand(
             request_id=self.translation_request_id,
@@ -145,6 +147,10 @@ class TranslationBridge:
         )
         worker.start()
 
+    def cancel(self) -> None:
+        """FT-054: отмена Пользователя. Не закрывает HTTP-клиент (A0149, A0152)."""
+        self._cancel.set()
+
     def close(self) -> None:
         self._stop.set()
         self._ollama.close()
@@ -160,6 +166,7 @@ class TranslationBridge:
                 command,
                 stop_event=self._stop,
                 on_event=emit,
+                cancel_event=self._cancel,
             )
         except EmptyInstructionError:
             return
@@ -179,6 +186,7 @@ class TranslationBridge:
                         processed_source_chars=0,
                         total_source_chars=len(command.original_text),
                         translation_so_far="",
+                        incomplete_cause="ollama",
                     )
                 ),
             )

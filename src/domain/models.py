@@ -59,3 +59,4 @@ class QueueEvent:
     processed_source_chars: int
     total_source_chars: int
     translation_so_far: str
+    incomplete_cause: Literal["none", "cancelled", "ollama"] = "none"

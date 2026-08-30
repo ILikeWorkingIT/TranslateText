@@ -2,7 +2,7 @@
 
 Поверхность: desktop (CustomTkinter). Раннер: pytest. Прогон — команда `/use-tests`.
 
-Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Срез S-05: пустая инструкция — диалог FT-029, согласие или отмена, базовый промпт текущего направления. Срез S-06: лимит 100 000 символов Unicode — поле держит >100k, отказ при «Перевести» без Ollama. Срез S-07: нарезка по абзацам (>5000 → несколько фрагментов), очередь перевода, прогресс по доле исходника, склейка в поле перевода. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
+Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Срез S-05: пустая инструкция — диалог FT-029, согласие или отмена, базовый промпт текущего направления. Срез S-06: лимит 100 000 символов Unicode — поле держит >100k, отказ при «Перевести» без Ollama. Срез S-07: нарезка по абзацам, очередь перевода, прогресс по доле исходника, склейка. Срез S-07b: сверхдлинный абзац (FT-025). Срез S-07c: отмена очереди (FT-054) — unit `StartTranslation` / `TranslationBridge.cancel` без GUI. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
 
 | Тест | Файл | Требования | Слой | Состояние UI | Примечание |
 | --- | --- | --- | --- | --- | --- |
@@ -112,3 +112,11 @@
 | `test_should_add_english_example_when_direction_is_ru_en` | `tests/test_ollama_gateway.py` | A0122 | edge | — | few-shot RU→EN |
 | `test_should_split_paragraph_over_5000_on_sentences_without_breaking_words` | `tests/test_split_text.py` | FT-025 | happy | — | S-07b, абзац >5000 |
 | `test_should_keep_word_intact_when_sentence_exceeds_5000` | `tests/test_split_text.py` | FT-025 | edge | — | слово 800 < 5000 не рвать |
+| `test_should_not_start_next_fragment_when_user_cancels_queue` | `tests/test_start_translation.py` | FT-054; A0149 | negative | — | без GUI; следующий фрагмент не уходит |
+| `test_should_append_in_flight_success_when_user_cancels` | `tests/test_start_translation.py` | A0152 | happy | — | доживший успех в склейке |
+| `test_should_keep_incomplete_when_single_fragment_succeeds_after_cancel` | `tests/test_start_translation.py` | A0150; UC-010 | edge | — | один фрагмент, incomplete |
+| `test_should_emit_cancelled_not_ollama_when_in_flight_fails_after_cancel` | `tests/test_start_translation.py` | A0153 | negative | — | причина cancelled, не ollama |
+| `test_should_not_fill_field_with_fragment_when_cancel_before_any_success` | `tests/test_start_translation.py` | A0148 | negative | — | пустая склейка |
+| `test_should_keep_previous_glue_when_cancel_then_later_fragment_fails` | `tests/test_start_translation.py` | NFT-007; A0155 | edge | — | длина склейки не меньше |
+| `test_should_not_emit_when_window_stop_is_set_during_queue` | `tests/test_start_translation.py` | FT-054 vs закрытие окна | negative | — | без incomplete |
+| `test_should_request_cancel_when_bridge_cancel_is_called` | `tests/test_start_translation.py` | FT-054 | happy | — | `TranslationBridge.cancel` |

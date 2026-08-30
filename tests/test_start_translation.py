@@ -7,7 +7,7 @@ from threading import Event
 
 import pytest
 
-from domain.errors import EmptyInstructionError
+from domain.errors import EmptyInstructionError, OllamaModelError
 from domain.models import Fragment, QueueEvent, StartTranslationCommand
 from services.split_text import SplitText
 from ui.bridge import TranslationBridge
@@ -273,3 +273,186 @@ def test_should_keep_blank_line_before_next_fragment_when_model_drops_it() -> No
     glued = events[-1].translation_so_far
     assert glued == "Hi.\n\nTask: Go."
     assert "Hi.Task:" not in glued
+
+
+class _CancelDuringTranslate(FakeOllama):
+    def __init__(self, cancel_event: Event, *, fail: bool = False) -> None:
+        super().__init__()
+        self._cancel_event = cancel_event
+        self._fail = fail
+
+    def translate_fragment(
+        self, *, model: str, instruction: str, source: str, direction: str = ""
+    ) -> str:
+        self.translate_calls.append((model, instruction, source))
+        self._cancel_event.set()
+        if self._fail:
+            raise OllamaModelError("fragment failed after cancel")
+        return f"{self._translation_prefix}{len(self.translate_calls) - 1}"
+
+
+def _queue_command(original: str, *, request_id: int = 10) -> StartTranslationCommand:
+    return StartTranslationCommand(
+        request_id=request_id,
+        original_text=original,
+        instruction="style",
+        instruction_confirmed=False,
+        model="qwen2.5:3b",
+        direction="EN→RU",
+    )
+
+
+def test_should_not_start_next_fragment_when_user_cancels_queue() -> None:
+    """FT-054, A0149: после отмены следующий фрагмент в Ollama не уходит."""
+    cancel = Event()
+    port = _CancelDuringTranslate(cancel)
+    part = "x" * 400
+    original = f"{part}\n\n{part}"
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command(original),
+        stop_event=Event(),
+        on_event=events.append,
+        cancel_event=cancel,
+    )
+    assert len(port.translate_calls) == 1
+    assert events[-1].status == "incomplete"
+    assert events[-1].incomplete_cause == "cancelled"
+    assert events[-1].translation_so_far.startswith("ok0")
+
+
+def test_should_append_in_flight_success_when_user_cancels() -> None:
+    """A0152: успешный ответ текущего фрагмента после клика отмены — в склейке."""
+    cancel = Event()
+    port = _CancelDuringTranslate(cancel)
+    part = "x" * 400
+    original = f"{part}\n\n{part}"
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command(original, request_id=11),
+        stop_event=Event(),
+        on_event=events.append,
+        cancel_event=cancel,
+    )
+    glued = events[-1].translation_so_far
+    assert "ok0" in glued
+    assert events[-1].processed_source_chars >= len(part)
+
+
+def test_should_keep_incomplete_when_single_fragment_succeeds_after_cancel() -> None:
+    """UC-010 §5.6: один фрагмент после отмены успешен — всё равно incomplete."""
+    cancel = Event()
+    port = _CancelDuringTranslate(cancel)
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command("Hello", request_id=12),
+        stop_event=Event(),
+        on_event=events.append,
+        cancel_event=cancel,
+    )
+    assert events[-1].status == "incomplete"
+    assert events[-1].incomplete_cause == "cancelled"
+    assert events[-1].translation_so_far == "ok0"
+
+
+def test_should_emit_cancelled_not_ollama_when_in_flight_fails_after_cancel() -> None:
+    """A0153: после принятой отмены сбой текущего запроса — причина cancelled."""
+    cancel = Event()
+    port = _CancelDuringTranslate(cancel, fail=True)
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command("Hello", request_id=13),
+        stop_event=Event(),
+        on_event=events.append,
+        cancel_event=cancel,
+    )
+    assert events[-1].status == "incomplete"
+    assert events[-1].incomplete_cause == "cancelled"
+    assert events[-1].translation_so_far == ""
+
+
+def test_should_not_fill_field_with_fragment_when_cancel_before_any_success() -> None:
+    """A0148: ни один фрагмент не успел — поле без обрывка."""
+    cancel = Event()
+    cancel.set()
+    port = FakeOllama()
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command("Hello", request_id=14),
+        stop_event=Event(),
+        on_event=events.append,
+        cancel_event=cancel,
+    )
+    assert port.translate_calls == []
+    assert events[-1].status == "incomplete"
+    assert events[-1].incomplete_cause == "cancelled"
+    assert events[-1].translation_so_far == ""
+
+
+def test_should_keep_previous_glue_when_cancel_then_later_fragment_fails() -> None:
+    """NFT-007, A0155: склейка после отмены не короче, чем после последнего успеха."""
+    cancel = Event()
+
+    class _SucceedThenFail(FakeOllama):
+        def translate_fragment(
+            self, *, model: str, instruction: str, source: str, direction: str = ""
+        ) -> str:
+            self.translate_calls.append((model, instruction, source))
+            if len(self.translate_calls) == 1:
+                return "first"
+            self._cancel_event.set()
+            raise OllamaModelError("second failed")
+
+        def __init__(self) -> None:
+            super().__init__()
+            self._cancel_event = cancel
+
+    port = _SucceedThenFail()
+    part = "x" * 400
+    original = f"{part}\n\n{part}"
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command(original, request_id=15),
+        stop_event=Event(),
+        on_event=events.append,
+        cancel_event=cancel,
+    )
+    after_first = [event for event in events if event.status == "inProgress" and event.next_index == 1]
+    assert after_first
+    last = events[-1]
+    assert last.incomplete_cause == "cancelled"
+    assert len(last.translation_so_far) >= len(after_first[-1].translation_so_far)
+
+
+def test_should_not_emit_when_window_stop_is_set_during_queue() -> None:
+    """Закрытие окна — не FT-054: колбэка incomplete нет."""
+    stop = Event()
+
+    class _StopOnCall(FakeOllama):
+        def translate_fragment(
+            self, *, model: str, instruction: str, source: str, direction: str = ""
+        ) -> str:
+            self.translate_calls.append((model, instruction, source))
+            stop.set()
+            return "late"
+
+    port = _StopOnCall()
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command("Hello", request_id=16),
+        stop_event=stop,
+        on_event=events.append,
+    )
+    assert all(event.status != "incomplete" for event in events)
+
+
+def test_should_request_cancel_when_bridge_cancel_is_called() -> None:
+    """Клей: cancel() не close() клиента и не увеличивает translation_request_id."""
+    port = FakeOllama()
+    host = FakeHost()
+    events: list[QueueEvent] = []
+    bridge = TranslationBridge(host=host, ollama=port, on_event=events.append)
+    bridge.cancel()
+    assert port.translate_calls == []
+    assert bridge.translation_request_id == 0
+
