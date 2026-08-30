@@ -4,7 +4,7 @@
 
 ## Манифест стадии
 
-- stage-id: S-10
+- stage-id: S-11
 - команда из `.cursor/list-commands.md`: срез чеклиста; слои `/app-layer` + `/frontend`
 - исполнитель: back-developer, front-developer, tester
 - дата: 2026-08-30
@@ -13,22 +13,21 @@
 
 | Ожидаемый путь | Есть | Замечание |
 | --- | --- | --- |
-| `reports/checklist.md` (S-10) | да | `[x]`; ручная приёмка — чат 2026-08-30 («Проверил, работает») |
-| `src/services/export_translation.py` | да | `ExportTranslation`; `.txt` UTF-8, `.docx` python-docx |
-| `src/domain/models.py` | да | `ExportFormat`, `ExportTranslationCommand` |
-| `src/domain/errors.py` | да | `ExportWriteError` |
-| `src/ui/bridge.py` | да | `ExportBridge`, запись ФС в daemon-потоке |
-| `src/ui/layout.py`, `src/ui/messages.py` | да | `asksaveasfilename`; только `.txt`/`.docx`; FT-044 `showerror` |
-| `src/requirements.txt` | да | `python-docx` |
-| `tests/test_export_translation.py`, `tests/test_export_save.py` | да | unit + GUI |
-| `reports/test-run.md` | да | 171 passed |
+| `reports/checklist.md` (S-11) | да | `[x]`; ручная приёмка — чат 2026-08-30 («Проверил. Все работает») |
+| `src/services/extract_source.py` | да | `ExtractSource`; `.txt`/`.md`; utf-8-sig, затем cp1251 |
+| `src/use_cases/load_source.py` | да | `LoadSource` |
+| `src/domain/models.py` | да | `SourceFormat`, `LoadSourceCommand` |
+| `src/ui/bridge.py` | да | `LoadSourceBridge`, чтение ФС в daemon-потоке |
+| `src/ui/layout.py`, `src/ui/messages.py` | да | `askopenfilename`; только `.txt`/`.md`; FT-039 для пустого `.txt`/`.md` |
+| `tests/test_extract_source.py`, `tests/test_open_source.py` | да | unit + GUI |
+| `reports/test-run.md` | да | 190 passed |
 
 ## Чек-лист верификации
 
 | # | Критерий | Результат | Заметка |
 | --- | --- | --- | --- |
-| 1 | Артефакт на правильном пути | pass | служба в `services/`; клей в `bridge.py`; диалог в `layout.py` |
-| 2 | Нет правок вне Input Manifest роли | pass | нет FastAPI; `ExtractSource` / открытие файла не тащились (S-11) |
+| 1 | Артефакт на правильном пути | pass | служба в `services/`; координатор в `use_cases/`; диалог в `layout.py` |
+| 2 | Нет правок вне Input Manifest роли | pass | нет FastAPI; парсер `.docx`/`.pdf` не тащился (S-12) |
 | 3 | Существующий точечный скилл не затёрт | pass | `/app-layer` → `skill-app-layer.md`; `/frontend` → `skill-frontend-developer.md` |
 | 4 | Критерии приёмки стадии проверяемы | pass | автотесты + ручная приёмка пользователя |
 
@@ -36,17 +35,16 @@
 
 | Критерий | Результат | Заметка |
 | --- | --- | --- |
-| Диалог только `.txt` и `.docx`; запись = правое поле | pass | `SAVE_FILETYPES`; GUI + unit |
-| Файл на пути — диалог ОС; отмена не меняет файл | pass | `confirmoverwrite=True`; пустой путь диалога — служба не зовётся |
-| Сбой записи не очищает поле и не блокирует кнопку | pass | `ExportWriteError` → `MSG_EXPORT_FAILED`; `save` остаётся `normal` |
-| После успеха `translationSaved` до правки поля | pass | `_on_export_success`; регресс FT-032 в `test_unsaved_warning.py` |
+| Выбранный `.txt` или `.md` в «Оригинальный текст» | pass | GUI + unit; A0099 очищает перевод |
+| Отмена диалога оставляет левое поле | pass | пустой путь — служба не зовётся |
+| Иные расширения в этом срезе не открывать | pass | `OPEN_FILETYPES` только `.txt`/`.md`; `docx`/`pdf` → `DocumentParseError` |
 
 ## Замечания
 
 | ID | Уровень | Суть | Где |
 | --- | --- | --- | --- |
-| S09-1 | minor | «Открыть файл» после подтверждения UC-006 файл не читает. Граница S-11. | `src/ui/layout.py` `_continue_open_file` |
-| S09-2 | — | Снято: запись на диск и диалог ОС есть в S-10. | — |
+| S09-1 | — | Снято: чтение `.txt`/`.md` есть в S-11. | — |
+| S11-1 | minor | Диалог и парсер `.docx`/`.pdf` и полный FT-042 — граница S-12. Сообщение «Текст не извлечён.» для пустого `.txt`/`.md` уже есть. | `src/services/extract_source.py` |
 
 ## Вердикт
 

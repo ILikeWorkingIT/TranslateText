@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Literal, Protocol
 
 ExportFormat = Literal["txt", "docx"]
+SourceFormat = Literal["txt", "md", "docx", "pdf"]
 
 PREFERRED_MODEL = "qwen2.5:3b"
 
@@ -62,6 +63,13 @@ class ExportTranslationCommand:
     translation_text: str
     path: str
     export_format: ExportFormat
+
+
+@dataclass(frozen=True)
+class LoadSourceCommand:
+    request_id: int
+    path: str
+    source_format: SourceFormat
 
 
 @dataclass(frozen=True)

@@ -182,6 +182,10 @@ def test_should_clear_translation_when_source_loaded_after_unsaved_confirm(
     """A0099, US-006 AC2: успешная загрузка после подтверждения очищает перевод."""
     app, _port = open_window(DEFAULT_FAKE_MODELS)
     monkeypatch.setattr("ui.layout.messagebox.askokcancel", lambda *_a, **_k: True)
+    monkeypatch.setattr(
+        "ui.layout.filedialog.askopenfilename",
+        lambda **kwargs: "",
+    )
     _fill_original(app, "Старый оригинал")
     _fill_translation(app, "Старый перевод")
     _click_open_file(app)

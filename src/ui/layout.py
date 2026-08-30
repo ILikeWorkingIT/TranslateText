@@ -9,19 +9,27 @@ from typing import Literal
 
 import customtkinter as ctk
 
-from domain.models import ExportFormat, ModelsRefreshedEvent, QueueEvent
+from domain.models import (
+    ExportFormat,
+    ModelsRefreshedEvent,
+    QueueEvent,
+    SourceFormat,
+)
 from services.ollama_gateway import OllamaGateway
-from ui.bridge import ExportBridge, ModelsBridge, TranslationBridge
+from ui.bridge import ExportBridge, LoadSourceBridge, ModelsBridge, TranslationBridge
 from ui.clipboard import read_plain_clipboard, write_plain_clipboard
 from ui.messages import (
     DIRECTION_EN_RU,
     HINT_IN_PROGRESS,
     HINT_NO_TEXT,
     HINT_OLLAMA_DOWN,
+    LABEL_OPEN_FILE,
     LABEL_SAVE_TRANSLATION,
     MSG_EMPTY_INSTRUCTION,
     MSG_EXPORT_FAILED,
+    MSG_SOURCE_NOT_EXTRACTED,
     MSG_UNSAVED_TRANSLATION,
+    OPEN_FILETYPES,
     SAVE_FILETYPES,
     STATUS_OLLAMA_UNAVAILABLE,
     STATUS_SOURCE_LIMIT_EXCEEDED,
@@ -29,6 +37,7 @@ from ui.messages import (
     STATUS_TRANSLATION_INCOMPLETE,
     TITLE_EMPTY_INSTRUCTION,
     TITLE_EXPORT_FAILED,
+    TITLE_SOURCE_NOT_EXTRACTED,
     TITLE_UNSAVED_TRANSLATION,
     base_prompt_for_direction,
     translation_label_for_direction,
@@ -70,6 +79,15 @@ def _export_format_of(path: Path) -> ExportFormat | None:
     return None
 
 
+def _source_format_of(path: Path) -> SourceFormat | None:
+    suffix = path.suffix.lower()
+    if suffix == ".txt":
+        return "txt"
+    if suffix == ".md":
+        return "md"
+    return None
+
+
 class TranslateTextWindow(ctk.CTk):
     def __init__(self) -> None:
         super().__init__()
@@ -105,6 +123,11 @@ class TranslateTextWindow(ctk.CTk):
             host=self,
             on_success=self._on_export_success,
             on_error=self._on_export_error,
+        )
+        self._load_bridge = LoadSourceBridge(
+            host=self,
+            on_success=self._on_load_success,
+            on_error=self._on_load_error,
         )
         self._bind_model_refresh_triggers()
         self._request_models_refresh()
@@ -609,8 +632,34 @@ class TranslateTextWindow(ctk.CTk):
         self._continue_open_file()
 
     def _continue_open_file(self) -> None:
-        """UC-002 после UC-006. Извлечение файла — срез S-11."""
-        return
+        """UC-002 после UC-006."""
+        chosen = filedialog.askopenfilename(
+            parent=self,
+            title=LABEL_OPEN_FILE,
+            filetypes=list(OPEN_FILETYPES),
+        )
+        if not chosen:
+            return
+        path = Path(chosen)
+        source_format = _source_format_of(path)
+        if source_format is None:
+            messagebox.showerror(
+                TITLE_SOURCE_NOT_EXTRACTED,
+                MSG_SOURCE_NOT_EXTRACTED,
+                parent=self,
+            )
+            return
+        self._load_bridge.start(path=str(path), source_format=source_format)
+
+    def _on_load_success(self, _request_id: int, text: str) -> None:
+        self._apply_loaded_source(text)
+
+    def _on_load_error(self, _request_id: int) -> None:
+        messagebox.showerror(
+            TITLE_SOURCE_NOT_EXTRACTED,
+            MSG_SOURCE_NOT_EXTRACTED,
+            parent=self,
+        )
 
     def _apply_loaded_source(self, text: str) -> None:
         """A0099: успешная загрузка исходника очищает поле перевода."""
@@ -806,6 +855,9 @@ class TranslateTextWindow(ctk.CTk):
         export = getattr(self, "_export_bridge", None)
         if export is not None:
             export.close()
+        load = getattr(self, "_load_bridge", None)
+        if load is not None:
+            load.close()
         super().destroy()
 
     def run(self) -> None:

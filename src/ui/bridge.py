@@ -6,6 +6,7 @@ from typing import Protocol
 
 from domain.errors import (
     AppLayerError,
+    DocumentParseError,
     EmptyInstructionError,
     ExportWriteError,
     OllamaUnavailableError,
@@ -15,13 +16,16 @@ from domain.errors import (
 from domain.models import (
     ExportFormat,
     ExportTranslationCommand,
+    LoadSourceCommand,
     ModelsRefreshedEvent,
     OllamaPort,
     QueueEvent,
     RefreshModelsCommand,
+    SourceFormat,
     StartTranslationCommand,
 )
 from services.export_translation import ExportTranslation
+from use_cases.load_source import LoadSource
 from use_cases.refresh_models import RefreshModels
 from use_cases.start_translation import StartTranslation, require_ready_instruction
 from use_cases.unsaved_translation import require_unsaved_confirmed
@@ -305,3 +309,73 @@ class ExportBridge:
         if not self._host.winfo_exists():
             return False
         return request_id == self.export_request_id
+
+
+class LoadSourceBridge:
+    def __init__(
+        self,
+        *,
+        host: UiHost,
+        on_success: Callable[[int, str], None],
+        on_error: Callable[[int], None],
+    ) -> None:
+        self._host = host
+        self._use_case = LoadSource()
+        self._on_success = on_success
+        self._on_error = on_error
+        self._stop = threading.Event()
+        self.load_request_id = 0
+
+    def start(self, *, path: str, source_format: SourceFormat) -> None:
+        if self._stop.is_set():
+            return
+        self.load_request_id += 1
+        command = LoadSourceCommand(
+            request_id=self.load_request_id,
+            path=path,
+            source_format=source_format,
+        )
+        worker = threading.Thread(
+            target=self._worker,
+            args=(command,),
+            daemon=True,
+        )
+        worker.start()
+
+    def close(self) -> None:
+        self._stop.set()
+
+    def _worker(self, command: LoadSourceCommand) -> None:
+        try:
+            text = self._use_case.run(command)
+        except DocumentParseError:
+            if self._stop.is_set():
+                return
+            self._host.call_on_ui(
+                lambda rid=command.request_id: self._apply_error(rid)
+            )
+            return
+        if self._stop.is_set():
+            return
+        self._host.call_on_ui(
+            lambda rid=command.request_id, loaded=text: self._apply_success(
+                rid, loaded
+            )
+        )
+
+    def _apply_success(self, request_id: int, text: str) -> None:
+        if not self._can_apply(request_id):
+            return
+        self._on_success(request_id, text)
+
+    def _apply_error(self, request_id: int) -> None:
+        if not self._can_apply(request_id):
+            return
+        self._on_error(request_id)
+
+    def _can_apply(self, request_id: int) -> bool:
+        if self._stop.is_set():
+            return False
+        if not self._host.winfo_exists():
+            return False
+        return request_id == self.load_request_id
