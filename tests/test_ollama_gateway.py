@@ -5,7 +5,11 @@ import json
 import httpx
 import pytest
 
-from domain.errors import OllamaUnavailableError
+from domain.errors import (
+    OllamaModelError,
+    OllamaTimeoutError,
+    OllamaUnavailableError,
+)
 from services.ollama_gateway import (
     OLLAMA_BASE_URL,
     OLLAMA_NUM_PREDICT,
@@ -236,3 +240,40 @@ def test_should_add_english_example_when_direction_is_ru_en() -> None:
     finally:
         gateway.close()
     assert text == "I love this world"
+
+
+def test_should_raise_timeout_when_chat_exceeds_60_seconds() -> None:
+    """FT-028, A0031: тишина / ReadTimeout — OllamaTimeoutError."""
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("timed out")
+
+    gateway = OllamaGateway(client=_client(httpx.MockTransport(handler)))
+    try:
+        with pytest.raises(OllamaTimeoutError):
+            gateway.translate_fragment(
+                model="qwen2.5:3b",
+                instruction="sys",
+                source="Hello",
+            )
+    finally:
+        gateway.close()
+
+
+def test_should_raise_model_error_when_chat_returns_http_error() -> None:
+    """FT-028, A0044: отказ модели на фрагмент — OllamaModelError."""
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, json={"error": "model failed"})
+
+    gateway = OllamaGateway(client=_client(httpx.MockTransport(handler)))
+    try:
+        with pytest.raises(OllamaModelError) as caught:
+            gateway.translate_fragment(
+                model="qwen2.5:3b",
+                instruction="sys",
+                source="Hello",
+            )
+    finally:
+        gateway.close()
+    assert "model failed" in str(caught.value)

@@ -7,7 +7,12 @@ from threading import Event
 
 import pytest
 
-from domain.errors import EmptyInstructionError, OllamaModelError
+from domain.errors import (
+    AppLayerError,
+    EmptyInstructionError,
+    OllamaModelError,
+    OllamaTimeoutError,
+)
 from domain.models import Fragment, QueueEvent, StartTranslationCommand
 from services.split_text import SplitText
 from ui.bridge import TranslationBridge
@@ -455,4 +460,78 @@ def test_should_request_cancel_when_bridge_cancel_is_called() -> None:
     bridge.cancel()
     assert port.translate_calls == []
     assert bridge.translation_request_id == 0
+
+
+class _FailFromCall(FakeOllama):
+    def __init__(self, *, fail_from: int, error: AppLayerError) -> None:
+        super().__init__()
+        self._fail_from = fail_from
+        self._error = error
+
+    def translate_fragment(
+        self, *, model: str, instruction: str, source: str, direction: str = ""
+    ) -> str:
+        self.translate_calls.append((model, instruction, source))
+        if len(self.translate_calls) >= self._fail_from:
+            raise self._error
+        return f"{self._translation_prefix}{len(self.translate_calls) - 1}"
+
+
+def test_should_stop_queue_when_fragment_times_out() -> None:
+    """FT-028, A0031: таймаут фрагмента — incomplete, следующий не стартует."""
+    part = "x" * 400
+    original = f"{part}\n\n{part}"
+    port = _FailFromCall(fail_from=1, error=OllamaTimeoutError("timed out"))
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command(original, request_id=20),
+        stop_event=Event(),
+        on_event=events.append,
+    )
+    assert len(port.translate_calls) == 1
+    last = events[-1]
+    assert last.status == "incomplete"
+    assert last.incomplete_cause == "ollama"
+    assert last.translation_so_far == ""
+
+
+def test_should_keep_glue_when_later_fragment_fails() -> None:
+    """FT-028, A0013: сбой середины — склейка успешных, очередь стоп."""
+    part = "x" * 400
+    original = f"{part}\n\n{part}"
+    port = _FailFromCall(fail_from=2, error=OllamaModelError("model refused"))
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command(original, request_id=21),
+        stop_event=Event(),
+        on_event=events.append,
+    )
+    assert len(port.translate_calls) == 2
+    last = events[-1]
+    assert last.status == "incomplete"
+    assert last.incomplete_cause == "ollama"
+    assert last.translation_so_far.startswith("ok0")
+    assert "ok1" not in last.translation_so_far
+
+
+def test_should_keep_glue_length_when_queue_fails() -> None:
+    """NFT-007: после сбоя длина склейки не меньше, чем после последнего успеха."""
+    part = "x" * 400
+    original = f"{part}\n\n{part}"
+    port = _FailFromCall(fail_from=2, error=OllamaTimeoutError("timed out"))
+    events: list[QueueEvent] = []
+    StartTranslation(port).run(
+        _queue_command(original, request_id=22),
+        stop_event=Event(),
+        on_event=events.append,
+    )
+    after_first = [
+        event
+        for event in events
+        if event.status == "inProgress" and event.next_index == 1
+    ]
+    assert after_first
+    last = events[-1]
+    assert last.status == "incomplete"
+    assert len(last.translation_so_far) >= len(after_first[-1].translation_so_far)
 

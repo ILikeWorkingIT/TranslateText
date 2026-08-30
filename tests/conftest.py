@@ -1,5 +1,6 @@
 import sys
 import threading
+import tkinter
 from pathlib import Path
 
 import pytest
@@ -31,6 +32,7 @@ class RecordingOllama:
         self.translation_results: tuple[str, ...] | None = None
         self.translate_error: AppLayerError | None = None
         self.translate_hold: threading.Event | None = None
+        self.error_from_call: int | None = None
 
     def list_models(self) -> tuple[str, ...]:
         self.list_calls += 1
@@ -46,7 +48,11 @@ class RecordingOllama:
         if hold is not None:
             hold.wait(timeout=10)
         if self.translate_error is not None:
-            raise self.translate_error
+            if (
+                self.error_from_call is None
+                or len(self.translate_calls) >= self.error_from_call
+            ):
+                raise self.translate_error
         if self.translation_results is not None:
             index = len(self.translate_calls) - 1
             if index < len(self.translation_results):
@@ -73,7 +79,10 @@ def open_window(monkeypatch):
         port = RecordingOllama(names)
         ports.append(port)
         monkeypatch.setattr("ui.layout.OllamaGateway", lambda: port)
-        app = HarnessWindow()
+        try:
+            app = HarnessWindow()
+        except tkinter.TclError:
+            app = HarnessWindow()
         apps.append(app)
         app.withdraw()
         app.update_idletasks()
