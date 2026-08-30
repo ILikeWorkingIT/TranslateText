@@ -23,6 +23,11 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Сборка exe (PyInstaller)
+/src/build/
+/src/dist/
+/artifacts/*.exe
+
 # Временные файлы экспорта TranslateText
 /src/export-tmp/
 

@@ -27,7 +27,7 @@
 | OpenAPI своего API | нет (`requirements/openapi.yaml` не создавать без своего сервера) | README |
 | Тесты | pytest, поверхность desktop/customtkinter | `tests/` |
 | Зависимости | `src/requirements.txt` (`customtkinter`, `httpx`, `python-docx`, `pypdf`) | — |
-| Запуск UI | `src/run-ui.bat` (Проводник), не терминал агента | README |
+| Запуск UI | `artifacts/TranslateText.exe` (Проводник, без Python) или `src/run-ui.bat`; не терминал агента | README |
 
 ## Интеграции
 

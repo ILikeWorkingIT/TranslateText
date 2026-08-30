@@ -248,9 +248,9 @@ def test_should_split_user_en_text_on_real_sentences() -> None:
         assert not source.lstrip().startswith("fter receiving")
 
 
-def test_should_never_exceed_hard_cap_5000_chars_per_fragment() -> None:
-    """A0009: ни один фрагмент не длиннее 5000."""
-    part = "z" * 6000
+def test_should_never_exceed_hard_cap_700_chars_per_fragment() -> None:
+    """A0159 / A0160: ни один фрагмент не длиннее 700."""
+    part = "z" * 2000
     fragments = SplitText().split(part)
     assert all(len(fragment.source) <= MAX_FRAGMENT_CHARS for fragment in fragments)
     assert "".join(fragment.source for fragment in fragments) == part
@@ -264,10 +264,10 @@ def _assert_words_not_split(sources: list[str]) -> None:
             )
 
 
-def test_should_split_paragraph_over_5000_on_sentences_without_breaking_words() -> None:
-    """FT-025, S-07b: один абзац >5000 — несколько фрагментов, слово не рвать."""
+def test_should_split_unit_over_700_on_spaces_without_breaking_words() -> None:
+    """FT-025: единица >700 — несколько фрагментов, слово не рвать."""
     sentence = "This is a complete sentence about translation quality. "
-    text = sentence * 100
+    text = sentence * 20
     assert "\n\n" not in text
     assert len(text) > MAX_FRAGMENT_CHARS
     fragments = SplitText().split(text)
@@ -278,10 +278,10 @@ def test_should_split_paragraph_over_5000_on_sentences_without_breaking_words() 
     _assert_words_not_split(sources)
 
 
-def test_should_keep_word_intact_when_sentence_exceeds_5000() -> None:
-    """FT-025: предложение >5000, слово длиннее 700 и короче 5000 — целиком."""
-    long_word = "W" * 800
-    text = ("word " * 900) + long_word + " end."
+def test_should_keep_word_intact_when_sentence_exceeds_700() -> None:
+    """FT-025: предложение >700, слово длиннее целевого и короче 700 — целиком."""
+    long_word = "W" * 600
+    text = ("word " * 200) + long_word + " end."
     assert len(text) > MAX_FRAGMENT_CHARS
     fragments = SplitText().split(text)
     sources = [fragment.source for fragment in fragments]

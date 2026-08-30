@@ -10,7 +10,7 @@
 - `requirements/functional-requirements.md` (`A0125`)
 - `requirements/non-functional-requirements.md` (`A0127`; NFT-014 — `A0129`)
 - `requirements/domain-model.md` (`A0138`), `requirements/data-dictionary.md` (`A0139`)
-- `requirements/answers-project.md` (`A0001`–`A0155`)
+- `requirements/answers-project.md` (`A0001`–`A0172`)
 
 ## Истории
 
@@ -92,8 +92,8 @@
 
 ## Итог `/qc-us-uc` (2026-08-30)
 
-**Обработано:** `reports/incompatibility-us-uc.md` — `A0157` (UC-010 §5.3). Повторный `/qc-us-uc` по этим правкам не предлагается.
+**Обработано:** ответы по `reports/incompatibility-us-uc.md` — `A0168`–`A0172` (параллельно ФТ/НФТ — `A0162`–`A0167`). Отчёт: статус **Обработано**.
 
 ## Рекомендуемый следующий шаг
 
-`/frontend` (кнопка «Отменить перевод» и текст статуса).
+По необходимости — разработка / сверка кода с FT-055; повторный QC только по явной просьбе.
