@@ -15,7 +15,7 @@ class FakeOllama:
         return self._models
 
     def translate_fragment(
-        self, *, model: str, instruction: str, source: str
+        self, *, model: str, instruction: str, source: str, direction: str = ""
     ) -> str:
         raise NotImplementedError
 

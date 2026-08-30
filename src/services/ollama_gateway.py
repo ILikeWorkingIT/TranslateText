@@ -30,6 +30,13 @@ _LEAK_MARKERS = (
     "End of source",
     "End of the source",
 )
+_DIRECTION_EN_RU = "EN→RU"
+_DIRECTION_RU_EN = "RU→EN"
+# qwen2.5:3b на «this world» подмешивает 这个世界; один пример целевого языка снимает срыв.
+_FEW_SHOT = {
+    _DIRECTION_EN_RU: ("I love this city", "Я люблю этот город"),
+    _DIRECTION_RU_EN: ("Я люблю этот город", "I love this city"),
+}
 
 
 class OllamaGateway:
@@ -56,14 +63,11 @@ class OllamaGateway:
         return names
 
     def translate_fragment(
-        self, *, model: str, instruction: str, source: str
+        self, *, model: str, instruction: str, source: str, direction: str = ""
     ) -> str:
         payload = {
             "model": model,
-            "messages": [
-                {"role": "system", "content": f"{instruction}{_SYSTEM_GUARD}"},
-                {"role": "user", "content": f"{source}{_USER_TAIL}"},
-            ],
+            "messages": _chat_messages(instruction, source, direction),
             "stream": False,
             "options": {
                 "num_predict": OLLAMA_NUM_PREDICT,
@@ -104,6 +108,21 @@ class OllamaGateway:
         traceback: TracebackType | None,
     ) -> None:
         self.close()
+
+
+def _chat_messages(
+    instruction: str, source: str, direction: str
+) -> list[dict[str, str]]:
+    messages = [
+        {"role": "system", "content": f"{instruction}{_SYSTEM_GUARD}"},
+    ]
+    example = _FEW_SHOT.get(direction)
+    if example is not None:
+        source_example, translated_example = example
+        messages.append({"role": "user", "content": source_example})
+        messages.append({"role": "assistant", "content": translated_example})
+    messages.append({"role": "user", "content": f"{source}{_USER_TAIL}"})
+    return messages
 
 
 def _strip_instruction_leak(text: str) -> str:

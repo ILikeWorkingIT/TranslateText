@@ -108,3 +108,5 @@
 | `test_should_copy_translation_when_ctrl_c_uses_cyrillic_es` | `tests/test_clipboard_copy.py` | B-001 | happy | — | RU Ctrl+C, VK_C=67 |
 | `test_should_copy_translation_when_ctrl_c_uses_latin_c` | `tests/test_clipboard_copy.py` | B-001 | happy | — | EN Ctrl+C |
 | `test_should_treat_cyrillic_es_as_copy_not_paste` | `tests/test_clipboard_copy.py` | B-001 | edge | — | keysym RU C ≠ paste |
+| `test_should_add_russian_example_when_direction_is_en_ru` | `tests/test_ollama_gateway.py` | A0006 | edge | — | few-shot EN→RU, без китайского срыва |
+| `test_should_add_english_example_when_direction_is_ru_en` | `tests/test_ollama_gateway.py` | A0122 | edge | — | few-shot RU→EN |

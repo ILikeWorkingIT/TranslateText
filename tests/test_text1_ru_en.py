@@ -103,7 +103,7 @@ def test_should_translate_all_three_text1_fragments_when_ru_en() -> None:
         body = json.loads(request.content.decode("utf-8"))
         captured.append(body)
         index = len(captured) - 1
-        user = body["messages"][1]["content"]
+        user = body["messages"][-1]["content"]
         assert isinstance(user, str)
         assert user.startswith(fragments[index].source)
         assert "Не задавай вопросов" in user

@@ -86,6 +86,7 @@ class StartTranslation:
                     model=command.model,
                     instruction=command.instruction,
                     source=fragment.source,
+                    direction=command.direction,
                 )
             except AppLayerError:
                 if stop_event.is_set():

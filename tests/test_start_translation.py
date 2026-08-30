@@ -34,7 +34,7 @@ class FakeOllama:
         return ("qwen2.5:3b",)
 
     def translate_fragment(
-        self, *, model: str, instruction: str, source: str
+        self, *, model: str, instruction: str, source: str, direction: str = ""
     ) -> str:
         self.translate_calls.append((model, instruction, source))
         index = len(self.translate_calls) - 1
@@ -245,7 +245,7 @@ class _FixedSplit(SplitText):
 
 class _OmitBreaksOllama(FakeOllama):
     def translate_fragment(
-        self, *, model: str, instruction: str, source: str
+        self, *, model: str, instruction: str, source: str, direction: str = ""
     ) -> str:
         self.translate_calls.append((model, instruction, source))
         if source.startswith("Hello"):

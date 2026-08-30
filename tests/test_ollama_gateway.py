@@ -95,7 +95,7 @@ def test_should_post_chat_to_local_ollama_when_translating_fragment() -> None:
         assert request.method == "POST"
         assert str(request.url) == "http://127.0.0.1:11434/api/chat"
         body = json.loads(request.content.decode("utf-8"))
-        user = body["messages"][1]["content"]
+        user = body["messages"][-1]["content"]
         assert user.startswith("Hello")
         assert "Не задавай вопросов" in user
         assert body["messages"][0]["role"] == "system"
@@ -174,3 +174,65 @@ def test_should_strip_english_instruction_tail_when_model_translates_it() -> Non
         gateway.close()
     assert text == "Hello, world."
     assert "End of source" not in text
+
+
+def test_should_add_russian_example_when_direction_is_en_ru() -> None:
+    """qwen2.5:3b смешивает китайский в EN→RU; один пример целевого языка перед фрагментом."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content.decode("utf-8"))
+        messages = body["messages"]
+        assert messages[1] == {"role": "user", "content": "I love this city"}
+        assert messages[2] == {
+            "role": "assistant",
+            "content": "Я люблю этот город",
+        }
+        assert messages[3]["role"] == "user"
+        assert messages[3]["content"].startswith("I love this world")
+        assert "Не задавай вопросов" in messages[3]["content"]
+        return httpx.Response(
+            200,
+            json={"message": {"role": "assistant", "content": "Я люблю этот мир"}},
+        )
+
+    gateway = OllamaGateway(client=_client(httpx.MockTransport(handler)))
+    try:
+        text = gateway.translate_fragment(
+            model="qwen2.5:3b",
+            instruction="sys",
+            source="I love this world",
+            direction="EN→RU",
+        )
+    finally:
+        gateway.close()
+    assert text == "Я люблю этот мир"
+
+
+def test_should_add_english_example_when_direction_is_ru_en() -> None:
+    """RU→EN: симметричный пример, чтобы few-shot EN→RU не тянул ответ в русский."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content.decode("utf-8"))
+        messages = body["messages"]
+        assert messages[1] == {"role": "user", "content": "Я люблю этот город"}
+        assert messages[2] == {
+            "role": "assistant",
+            "content": "I love this city",
+        }
+        assert messages[3]["content"].startswith("Я люблю этот мир")
+        return httpx.Response(
+            200,
+            json={"message": {"role": "assistant", "content": "I love this world"}},
+        )
+
+    gateway = OllamaGateway(client=_client(httpx.MockTransport(handler)))
+    try:
+        text = gateway.translate_fragment(
+            model="qwen2.5:3b",
+            instruction="sys",
+            source="Я люблю этот мир",
+            direction="RU→EN",
+        )
+    finally:
+        gateway.close()
+    assert text == "I love this world"

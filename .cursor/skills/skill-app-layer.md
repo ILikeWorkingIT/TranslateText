@@ -130,7 +130,7 @@ Copy-in / events-out: в use case **не** передавай живой объ�
 ```python
 class OllamaPort(Protocol):
     def list_models(self) -> tuple[str, ...]: ...
-    def translate_fragment(self, *, model: str, instruction: str, source: str) -> str: ...
+    def translate_fragment(self, *, model: str, instruction: str, source: str, direction: str = "") -> str: ...
     def close(self) -> None: ...
 
 @dataclass(frozen=True)
@@ -217,7 +217,7 @@ self._client = httpx.Client(
 | Модели | `GET /api/tags` → `tuple[str, ...]`, без фильтра (FT-005) |
 | Фрагмент | `POST /api/chat`, `stream=False`; `model` = снимок |
 | system | снимок инструкции + короткая фраза «переведи целиком, не суммируй» (A0143). Базовый промпт в поле UI не дублируй отсюда |
-| user | сырой фрагмент **без** `<<<` / `>>>` (A0144), затем хвост A0145: «Конец исходника. … Напиши только перевод. Не задавай вопросов…» |
+| user | сначала одна пара few-shot целевого языка (`EN→RU`: «I love this city» → «Я люблю этот город»; `RU→EN` — наоборот), иначе qwen2.5:3b мешает китайский в короткие EN→RU фразы; затем сырой фрагмент **без** `<<<` / `>>>` (A0144) и хвост A0145 |
 | options | `num_predict: -1` (умолчание Ollama — 128 токенов **ответа**; фрагмент 500–700 в него не влезает — это не нарезка исходника по токенам), `temperature: 0`, `stop` по «Конец исходника» / «End of source» |
 | Ответ | срезать утечку хвоста из текста (RU и EN, в т.ч. обрывок). Пусто после среза → `OllamaModelError` |
 | 60 с | весь запрос фрагмента. Тишина / `ReadTimeout` / `ConnectTimeout` → `OllamaTimeoutError` → очередь `incomplete` (FT-028, A0031) |

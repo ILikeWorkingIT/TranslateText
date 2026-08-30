@@ -39,7 +39,7 @@ class RecordingOllama:
         return tuple(self.names)
 
     def translate_fragment(
-        self, *, model: str, instruction: str, source: str
+        self, *, model: str, instruction: str, source: str, direction: str = ""
     ) -> str:
         self.translate_calls.append((model, instruction, source))
         hold = self.translate_hold
