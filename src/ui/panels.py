@@ -7,6 +7,7 @@ import customtkinter as ctk
 from ui.messages import (
     DIRECTION_EN_RU,
     DIRECTION_VALUES,
+    LABEL_CANCEL_TRANSLATION,
     LABEL_CUSTOM_INSTRUCTION,
     LABEL_DIRECTION,
     LABEL_MODEL,
@@ -270,6 +271,7 @@ class FooterBar(ctk.CTkFrame):
         master: ctk.CTk,
         *,
         on_translate: Callable[[], None],
+        on_cancel_translation: Callable[[], None],
     ) -> None:
         super().__init__(master, fg_color=BG, corner_radius=0)
         self.grid_columnconfigure(0, weight=1)
@@ -296,8 +298,15 @@ class FooterBar(ctk.CTkFrame):
 
         actions = ctk.CTkFrame(self, fg_color="transparent")
         actions.grid(row=1, column=0)
+        self.cancel = _ghost_button(
+            actions,
+            label=LABEL_CANCEL_TRANSLATION,
+            command=on_cancel_translation,
+            qa_id="btn-cancel-translation",
+        )
+        self.cancel.configure(width=200, height=46)
         self.translate_wrap = ctk.CTkFrame(actions, fg_color="transparent")
-        self.translate_wrap.pack()
+        self.translate_wrap.pack(side="left")
         self.translate = ctk.CTkButton(
             self.translate_wrap,
             text=LABEL_TRANSLATE,
@@ -324,3 +333,10 @@ class FooterBar(ctk.CTkFrame):
         )
         self.status.grid(row=2, column=0, pady=(12, 10))
         _set_qa_id(self.status, "label-status")
+
+    def set_cancel_visible(self, visible: bool) -> None:
+        if visible:
+            if not self.cancel.winfo_ismapped():
+                self.cancel.pack(side="left", padx=(0, 12), before=self.translate_wrap)
+            return
+        self.cancel.pack_forget()

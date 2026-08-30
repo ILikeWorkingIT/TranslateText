@@ -76,6 +76,14 @@ def is_disabled(widget) -> bool:
     return state == "disabled"
 
 
+def is_shown(widget) -> bool:
+    """Виджет в геометрии (pack/grid). Не winfo_ismapped: при withdraw() всё unmapped."""
+    try:
+        return str(widget.winfo_manager()) != ""
+    except Exception:
+        return False
+
+
 def collected_texts(root) -> list[str]:
     texts = []
     for widget in iter_widgets(root):

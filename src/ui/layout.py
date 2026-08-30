@@ -20,6 +20,7 @@ from ui.messages import (
     MSG_EMPTY_INSTRUCTION,
     STATUS_OLLAMA_UNAVAILABLE,
     STATUS_SOURCE_LIMIT_EXCEEDED,
+    STATUS_TRANSLATION_CANCELLED,
     STATUS_TRANSLATION_INCOMPLETE,
     TITLE_EMPTY_INSTRUCTION,
     base_prompt_for_direction,
@@ -63,6 +64,7 @@ class TranslateTextWindow(ctk.CTk):
         self._status_after = ""
         self._hint_leave_after = ""
         self._ui_state: TranslateState = "idle"
+        self._cancel_requested = False
         self._applying_models = False
         self._ollama_availability: OllamaAvailability = "unknown"
         self._direction = DIRECTION_EN_RU
@@ -135,10 +137,15 @@ class TranslateTextWindow(ctk.CTk):
         self.instruction_card.grid(row=2, column=0, sticky="ew", padx=28, pady=8)
         self.instruction = self.instruction_card.instruction
 
-        self.footer = FooterBar(self, on_translate=self._on_translate)
+        self.footer = FooterBar(
+            self,
+            on_translate=self._on_translate,
+            on_cancel_translation=self._on_cancel_translation,
+        )
         self.footer.grid(row=3, column=0, sticky="ew", padx=28, pady=(4, 8))
         self.progress = self.footer.progress
         self.translate = self.footer.translate
+        self.cancel = self.footer.cancel
         self.status = self.footer.status
 
         self.translate_hint = ctk.CTkLabel(
@@ -485,6 +492,7 @@ class TranslateTextWindow(ctk.CTk):
         )
         self.translate.configure(state="disabled" if translate_blocked else "normal")
         self.save.configure(state="disabled" if translation_empty else "normal")
+        self._sync_cancel_visibility()
         if self._ollama_availability == "unavailable":
             self.status.configure(text=STATUS_OLLAMA_UNAVAILABLE)
         else:
@@ -543,6 +551,21 @@ class TranslateTextWindow(ctk.CTk):
         self.translate_hint.configure(text="")
         self.translate_hint.place_forget()
 
+    def _sync_cancel_visibility(self) -> None:
+        visible = self._translation_in_progress() and not self._cancel_requested
+        try:
+            self.footer.set_cancel_visible(visible)
+        except tkinter.TclError:
+            return
+
+    def _on_cancel_translation(self) -> None:
+        """FT-054: скрыть сразу; «Перевести» остаётся серой до конца запроса (A0151)."""
+        if not self._translation_in_progress() or self._cancel_requested:
+            return
+        self._cancel_requested = True
+        self._sync_cancel_visibility()
+        self._translation_bridge.cancel()
+
     def _on_open_file(self) -> None:
         return
 
@@ -588,6 +611,7 @@ class TranslateTextWindow(ctk.CTk):
         model: str,
     ) -> None:
         self._ui_state = "loading"
+        self._cancel_requested = False
         self.progress.set(0)
         self._refresh_action_states()
         self._translation_bridge.start(
@@ -601,6 +625,7 @@ class TranslateTextWindow(ctk.CTk):
     def _on_source_limit_exceeded(self) -> None:
         """FT-023: отказ без Ollama; оригинал не обрезается."""
         self._ui_state = "idle"
+        self._cancel_requested = False
         self.progress.set(0)
         self._refresh_action_states()
         self.status.configure(text=STATUS_SOURCE_LIMIT_EXCEEDED)
@@ -615,6 +640,7 @@ class TranslateTextWindow(ctk.CTk):
             self._set_translation_text(event.translation_so_far)
             self.progress.set(1)
             self._ui_state = "idle"
+            self._cancel_requested = False
             self._refresh_action_states()
             return
         if event.status == "incomplete":
@@ -622,10 +648,15 @@ class TranslateTextWindow(ctk.CTk):
                 self._set_translation_text(event.translation_so_far)
             self._set_progress_from_event(event)
             self._ui_state = "idle"
+            self._cancel_requested = False
             self._refresh_action_states()
-            self.status.configure(text=STATUS_TRANSLATION_INCOMPLETE)
+            if event.incomplete_cause == "cancelled":
+                self.status.configure(text=STATUS_TRANSLATION_CANCELLED)
+            else:
+                self.status.configure(text=STATUS_TRANSLATION_INCOMPLETE)
             return
         self._ui_state = "idle"
+        self._cancel_requested = False
         self._refresh_action_states()
 
     def _set_progress_from_event(self, event: QueueEvent) -> None:

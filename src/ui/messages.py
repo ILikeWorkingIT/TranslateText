@@ -9,6 +9,7 @@ LABEL_DIRECTION = "Направление перевода"
 LABEL_CUSTOM_INSTRUCTION = "Кастомная инструкция"
 LABEL_MODEL = "Модель"
 LABEL_TRANSLATE = "Перевести"
+LABEL_CANCEL_TRANSLATION = "Отменить перевод"
 LABEL_PROGRESS = "Индикатор прогресса"
 
 DIRECTION_EN_RU = "EN→RU"
@@ -27,6 +28,9 @@ STATUS_SOURCE_LIMIT_EXCEEDED = (
 )
 STATUS_TRANSLATION_INCOMPLETE = (
     "Перевод не завершён: нет ответа Ollama в течение 60 с или ошибка модели."
+)
+STATUS_TRANSLATION_CANCELLED = (
+    "Перевод не завершён: отменён Пользователем."
 )
 
 TITLE_EMPTY_INSTRUCTION = "Кастомная инструкция"
