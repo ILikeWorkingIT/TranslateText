@@ -6,6 +6,7 @@ description: >-
   requirements and existing tests, then adds tests only for uncovered UI behavior.
   Does not run the suite: that is /use-tests.
 disable-model-invocation: true
+owner: tester
 ---
 
 # Создание автотестов фронтенда

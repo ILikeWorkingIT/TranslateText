@@ -7,6 +7,7 @@ description: >-
   stock Windows chrome inside), contrast, launcher in Explorer.
   Universal; not tied to any product domain.
 disable-model-invocation: true
+owner: designer
 ---
 
 # Макет окна приложения

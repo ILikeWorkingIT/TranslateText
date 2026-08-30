@@ -5,6 +5,7 @@ description: >-
   fields with types and constraints, MVP vs out-of-scope data fields, or runs
   /data-dictionary. Closed answers go to answers-project.md when that file exists.
 disable-model-invocation: true
+owner: architect
 ---
 
 # Словарь данных (Data Dictionary)

@@ -10,6 +10,7 @@ description: >-
   (/frontend), click-only mockups (/ui-prototyping), or running the suite
   (/use-tests).
 disable-model-invocation: true
+owner: back-developer
 ---
 
 # Прикладной слой (слой за кнопками)

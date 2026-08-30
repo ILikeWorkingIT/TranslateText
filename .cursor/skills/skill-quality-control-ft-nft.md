@@ -7,6 +7,7 @@ description: >-
   asks for quality control of requirements, or agrees to a post-edit FT/NFT review.
   Closed answers after QC go to answers-project.md.
 disable-model-invocation: true
+owner: anatomist
 ---
 
 # Контроль качества ФТ и НФТ

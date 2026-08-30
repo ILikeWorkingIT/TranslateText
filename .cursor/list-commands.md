@@ -2,26 +2,56 @@
 
 Актуальный список команд запуска скиллов и агентов. Обновлять при создании нового скилла, агента или команды.
 
-| Команда | Файл | Назначение |
-| --- | --- | --- |
-| `/pin-memory` | `.cursor/commands/pin-memory.md` | Быстро сохранить устойчивый вывод из чата в `reports/agent-memory.md` |
-| `/ft` | `.cursor/commands/ft.md` | Написать или обновить функциональные требования по `.cursor/skills/skill-ft.md` |
-| `/nft` | `.cursor/commands/nft.md` | Написать или обновить нефункциональные требования по `.cursor/skills/skill-nft.md` |
-| `/us` | `.cursor/commands/us.md` | Написать или обновить User Stories, роли и права по `.cursor/skills/skill-us.md` |
-| `/uc` | `.cursor/commands/uc.md` | Написать или обновить Use Cases (Cockburn) по `.cursor/skills/skill-uc.md` |
-| `/qc-ft-nft` | `.cursor/commands/qc-ft-nft.md` | Проверить качество ФТ и НФТ по `.cursor/skills/skill-quality-control-ft-nft.md` |
-| `/qc-us-uc` | `.cursor/commands/qc-us-uc.md` | Проверить качество US и UC по `.cursor/skills/skill-quality-control-us-uc.md` |
-| `/diagram-bpmn` | `.cursor/commands/diagram-bpmn.md` | Моделировать бизнес-процесс в BPMN 2.0 для bpmn.io по `.cursor/skills/skill-diagram-bpmn.md` |
-| `/diagram-mermaid` | `.cursor/commands/diagram-mermaid.md` | Mermaid: flowchart, DFD, classDiagram, sequenceDiagram, C4 по `.cursor/skills/skill-diagram-mermaid.md` (sequence: guardrails §4.6 до Mermaid) |
-| `/ddd` | `.cursor/commands/ddd.md` | Доменная модель (DDD) по `.cursor/skills/skill-ddd.md`; в конце обязательно QC `.cursor/skills/skill-quality-control-ddd.md` |
-| `/qc-ddd` | `.cursor/commands/qc-ddd.md` | Контроль качества DDD-модели по `.cursor/skills/skill-quality-control-ddd.md` (самостоятельный режим: отчёт; перенос §4 — по согласию) |
-| `/data-dictionary` | `.cursor/commands/data-dictionary.md` | Словарь данных (поля, типы, ограничения, MVP) по `.cursor/skills/skill-data-dictionary.md`; после записи файла обязателен гейт проверки до отчёта |
-| `/ui-prototyping` | `.cursor/commands/ui-prototyping.md` | Макет окна приложения: вид и клики, не сайт и не рабочий функционал; скилл `.cursor/skills/skill-ui-prototyping.md` |
-| `/frontend` | `.cursor/commands/frontend.md` | Рабочий desktop UI (customtkinter, тема, стейт) по `.cursor/skills/skill-frontend-developer.md`; макет без функционала — `/ui-prototyping` |
-| `/app-layer` | `.cursor/commands/app-layer.md` | Прикладной слой за окном (Ollama, нарезка, файлы, очередь) по `.cursor/skills/skill-app-layer.md`; UI-хром — `/frontend` |
-| `/openai` | `.cursor/commands/openai.md` | OpenAPI-спецификация (YAML, Swagger UI + ReDoc) по `.cursor/skills/skill-openai.md`; после записи файла обязателен гейт проверки и просмотрщики |
-| `/new-tests` | `.cursor/commands/new-tests.md` | Новые автотесты фронтенда по `.cursor/skills/skill-new-tests-front.md`: требования, инвентаризация старых тестов, пробелы в `tests/` |
-| `/use-tests` | `.cursor/commands/use-tests.md` | Прогон автотестов по `.cursor/skills/skill-use-tests-front.md`: отчёт `reports/test-run.md` (очередь багов для агента) и краткое резюме в чат |
+| Команда            | Файл                                  | Назначение                                                                                                                                                       |
+| ------------------ | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/pm`              | `.cursor/commands/pm.md`              | Точка входа MAS: роль `pm`, скилл `.cursor/skills/skill-agent-pm.md`. Сверяет `project-config.md` / `pm-state.md`, предлагает или стартует один этап. Не `/full-cycle` |
+| `/pin-memory`      | `.cursor/commands/pin-memory.md`      | Сохранить информацию или выводы из чата в `reports/agent-memory.md`                                                                                              |
+| `/ft`              | `.cursor/commands/ft.md`              | Написать или обновить функциональные требования по `.cursor/skills/skill-ft.md`                                                                                  |
+| `/nft`             | `.cursor/commands/nft.md`             | Написать или обновить нефункциональные требования по `.cursor/skills/skill-nft.md`                                                                               |
+| `/us`              | `.cursor/commands/us.md`              | Написать или обновить User Stories, роли и права по `.cursor/skills/skill-us.md`                                                                                 |
+| `/uc`              | `.cursor/commands/uc.md`              | Написать или обновить Use Cases (Cockburn) по `.cursor/skills/skill-uc.md`                                                                                       |
+| `/qc-ft-nft`       | `.cursor/commands/qc-ft-nft.md`       | Проверить качество ФТ и НФТ по `.cursor/skills/skill-quality-control-ft-nft.md`                                                                                  |
+| `/qc-us-uc`        | `.cursor/commands/qc-us-uc.md`        | Проверить качество US и UC по `.cursor/skills/skill-quality-control-us-uc.md`                                                                                    |
+| `/diagram-bpmn`    | `.cursor/commands/diagram-bpmn.md`    | Моделировать бизнес-процесс в BPMN 2.0 для bpmn.io по `.cursor/skills/skill-diagram-bpmn.md`                                                                     |
+| `/diagram-mermaid` | `.cursor/commands/diagram-mermaid.md` | Создать диаграммы Mermaid: flowchart, DFD, classDiagram, sequenceDiagram, C4 по `.cursor/skills/skill-diagram-mermaid.md` (sequence: guardrails §4.6 до Mermaid) |
+| `/ddd`             | `.cursor/commands/ddd.md`             | Создать доменную модель (DDD) по `.cursor/skills/skill-ddd.md`; в конце обязательно QC `.cursor/skills/skill-quality-control-ddd.md`                             |
+| `/qc-ddd`          | `.cursor/commands/qc-ddd.md`          | Выполнить контроль качества DDD-модели по `.cursor/skills/skill-quality-control-ddd.md` (самостоятельный режим: отчёт; перенос §4 — по согласию)                 |
+| `/data-dictionary` | `.cursor/commands/data-dictionary.md` | Создать словарь данных (поля, типы, ограничения, MVP) по `.cursor/skills/skill-data-dictionary.md`; после записи файла обязателен гейт проверки до отчёта        |
+| `/ui-prototyping`  | `.cursor/commands/ui-prototyping.md`  | Создать макет окна приложения: вид и клики, не сайт и не рабочий функционал; скилл `.cursor/skills/skill-ui-prototyping.md`                                      |
+| `/frontend`        | `.cursor/commands/frontend.md`        | Разработать рабочий desktop UI (customtkinter, тема, стейт) по `.cursor/skills/skill-frontend-developer.md`; макет без функционала — `/ui-prototyping`           |
+| `/app-layer`       | `.cursor/commands/app-layer.md`       | Разработать прикладной слой за окном (Ollama, нарезка, файлы, очередь) по `.cursor/skills/skill-app-layer.md`; UI-хром — `/frontend`                             |
+| `/openai`          | `.cursor/commands/openai.md`          | Разработать OpenAPI-спецификацию (YAML, Swagger UI + ReDoc) по `.cursor/skills/skill-openai.md`; после записи файла обязателен гейт проверки и просмотрщики      |
+| `/new-tests`       | `.cursor/commands/new-tests.md`       | Разработать новые автотесты фронтенда по `.cursor/skills/skill-new-tests-front.md`: требования, инвентаризация старых тестов, пробелы в `tests/`                 |
+| `/use-tests`       | `.cursor/commands/use-tests.md`       | Выполнить прогон автотестов по `.cursor/skills/skill-use-tests-front.md`: отчёт `reports/test-run.md` (очередь багов для агента) и краткое резюме в чат          |
+| `/qc-stage`        | `.cursor/commands/qc-stage.md`        | Универсальный гейт стадии: `stage-id` из `reports/pm-state.md` → команда в этом файле → отчёт `reports/review-report.md` по `.cursor/skills/skill-agent-anatomist.md` |
+
+## Агенты MAS
+
+Файлы в `.cursor/agents/`. Канон — Custom Agents / subagents Cursor, не JSON Custom Modes в Settings. Предпочтительный вход — `pm`.
+
+| Агент | Файл | Скилл-маршрутизатор | Правило |
+| --- | --- | --- | --- |
+| `pm` | `.cursor/agents/agent-pm.md` | `skill-agent-pm` | `role-pm.mdc` |
+| `analyst` | `.cursor/agents/agent-analyst.md` | `skill-agent-analyst` | `role-analyst.mdc` |
+| `architect` | `.cursor/agents/agent-architect.md` | `skill-agent-architect` | `role-architect.mdc` |
+| `tech-writer` | `.cursor/agents/agent-tech-writer.md` | `skill-agent-tech-writer` | `role-tech-writer.mdc` |
+| `anatomist` | `.cursor/agents/agent-anatomist.md` | `skill-agent-anatomist` | `role-anatomist.mdc` |
+| `designer` | `.cursor/agents/agent-designer.md` | `skill-agent-designer` | `role-designer.mdc` |
+| `front-developer` | `.cursor/agents/agent-front-developer.md` | `skill-agent-front-developer` | `role-front-developer.mdc` |
+| `back-developer` | `.cursor/agents/agent-back-developer.md` | `skill-agent-back-developer` | `role-back-developer.mdc` |
+| `tester` | `.cursor/agents/agent-tester.md` | `skill-agent-tester` | `role-tester.mdc` |
+
+## Режимы `/pm`
+
+Отдельной подкоманды нет: режим выбирается по содержимому запроса.
+
+**Статус** — пустой `/pm`, «что дальше». ПМ читает config и чеклист, предлагает `stage-id` и команду. Код не пишет. `/qc-stage` не запускает.
+
+**Старт этапа** — в запросе срез или команда (`S-05`, «сделай app-layer»). ПМ пишет `stage-id` и назначает исполнителя. Чужие скиллы в том же ходе — только если явно попросили выполнить работу, не только план.
+
+**Утверждение** — «утверждаю» / «принимаю этап». ПМ пишет `Stage: <id>: APPROVED`. Следующий глобальный этап сам не начинает.
+
+Нет `/full-cycle`. Прямые `/ft`, `/frontend` по-прежнему допустимы.
 
 ## Режимы `/qc-ft-nft` и `/qc-us-uc`
 
@@ -109,6 +139,16 @@
 
 Макет «вид + клики, без функционала» — это `/ui-prototyping`, не `/frontend`. Ollama, нарезка, файлы, очередь — `/app-layer`, не `/frontend`. Только тесты — `/new-tests`. Только прогон / баги без правки UI — `/use-tests`. После правки предлагает `/new-tests` и `/use-tests` отдельными командами и **не** запускает их в том же прогоне.
 
+## Режимы `/qc-stage`
+
+Отдельной подкоманды нет.
+
+**Гейт текущей стадии** — типичный `/qc-stage`. Анатомист читает `stage-id` из `reports/pm-state.md`, сопоставляет с таблицей команд выше (или с заголовком среза в `reports/checklist.md`, включая `S-07b`), пишет `reports/review-report.md`. Этап не утверждает.
+
+**Явный stage-id** — в запросе указан id. Он важнее поля в `pm-state.md`. Анатомист обновляет только строку `- stage-id:`. Не ставит `APPROVED`.
+
+Если `stage-id` = `qc-ft-nft` / `qc-us-uc` / `qc-ddd` — выполни соответствующий точечный QC-скилл, универсальный чек-лист не дублируй поверх его алгоритма.
+
 ## Режимы `/app-layer`
 
 Отдельной подкоманды нет: режим выбирается по содержимому запроса.
@@ -118,4 +158,3 @@
 **Баг** — таймаут, гонка `request_id`, битый файл, сбой экспорта, инвариант очереди. Минимальный дифф по канону.
 
 Свой HTTP-сервер, FastAPI, Flask, облако — отказ. Виджеты и тема — `/frontend`. Макет — `/ui-prototyping`. Только прогон — `/use-tests`.
-

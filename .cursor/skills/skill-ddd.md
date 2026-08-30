@@ -5,6 +5,7 @@ description: >-
   entities, value objects, ubiquitous language mapping, or runs /ddd.
   Closed modeling answers go to answers-project.md when that file exists.
 disable-model-invocation: true
+owner: architect
 ---
 
 # Предметно-ориентированная модель (DDD)

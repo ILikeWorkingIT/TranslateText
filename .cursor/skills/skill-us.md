@@ -6,6 +6,7 @@ description: >-
   Produces per-story files, registry, roles list, and open questions.
   Closed answers go to answers-project.md when that file exists.
 disable-model-invocation: true
+owner: analyst
 ---
 
 # Написание User Stories, ролей и прав

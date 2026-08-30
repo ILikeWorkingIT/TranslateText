@@ -6,6 +6,7 @@ description: >-
   reports/test-run.md, and a short chat summary. Fix mode has a hard retry
   cap. Creating tests is /new-tests, not this skill.
 disable-model-invocation: true
+owner: tester
 ---
 
 # Прогон автотестов

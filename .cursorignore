@@ -1,4 +1,4 @@
-# Зависимости и виртуальные окружения
+﻿# Зависимости и виртуальные окружения
 node_modules/
 .venv/
 venv/
@@ -10,6 +10,11 @@ build/
 .next/
 .cache/
 __pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+*.egg-info/
 
 # Логи и временные файлы
 *.log

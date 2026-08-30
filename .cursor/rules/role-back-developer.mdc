@@ -1,0 +1,30 @@
+---
+description: Охранное правило роли back-developer. Подключай при /app-layer. Не применяй при /frontend или /ui-prototyping.
+globs: src/domain/**/*.py,src/services/**/*.py,src/use_cases/**/*.py,src/ui/bridge.py
+alwaysApply: false
+---
+
+# Роль back-developer — Input Manifest
+
+Инструкция модели, не ACL. Виджеты и тему не открывай на запись.
+`src/ui/bridge.py` — единственный файл UI в globs этой роли.
+Корневые манифесты среды (`src/requirements.txt` и аналоги) можно читать; в globs их нет.
+
+## Можно читать
+
+- `src/domain/`, `src/services/`, `src/use_cases/`, `src/ui/bridge.py`
+- ФТ, доменная модель, словарь данных
+- `reports/project-config.md`
+- Корневые манифесты среды: `src/requirements.txt`, `requirements.txt`, `package.json`, `go.mod`, `.env.example`
+- `.cursor/agents/agent-back-developer.md`, `.cursor/skills/skill-app-layer.md`
+
+## Можно писать
+
+- `src/domain/`, `src/services/`, `src/use_cases/`
+- `src/ui/bridge.py` — только транспорт (поток + `after`)
+
+## Нельзя
+
+- `src/ui/theme.py`, `layout.py`, `panels.py`, вёрстка контролов
+- FastAPI / Flask / свой сервер
+- `/use-tests` в том же ходе

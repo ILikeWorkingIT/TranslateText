@@ -6,6 +6,7 @@ description: >-
   metrics, measurement rules, and open questions. Closed answers go to
   answers-project.md.
 disable-model-invocation: true
+owner: architect
 ---
 
 # Написание нефункциональных требований

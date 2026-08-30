@@ -1,0 +1,32 @@
+---
+description: Охранное правило роли front-developer. Подключай при /frontend. Не применяй при /ui-prototyping, /app-layer или если в контексте src/ui/bridge.py.
+globs: src/ui/layout.py,src/ui/panels.py,src/ui/messages.py,src/ui/clipboard.py,src/app.py
+alwaysApply: false
+---
+
+# Роль front-developer — Input Manifest
+
+Инструкция модели, не ACL. Службы бэкенда не открывай без явного поручения ПМ.
+Если активны `/ui-prototyping` или агент designer — это правило не применяй (макет, не рабочий UI).
+`src/ui/bridge.py` — зона back-developer; не открывай на запись.
+Корневые манифесты среды (`src/requirements.txt` и аналоги) можно читать; в globs их нет, чтобы не пересечься с back-developer.
+
+## Можно читать
+
+- `src/ui/`, `src/app.py`
+- `requirements/functional-requirements.md`, `requirements/glossary.md`
+- Макет после `/ui-prototyping`
+- `reports/project-config.md`
+- Корневые манифесты среды: `src/requirements.txt`, `requirements.txt`, `package.json`, `go.mod`, `.env.example`
+- `.cursor/agents/agent-front-developer.md`, `.cursor/skills/skill-frontend-developer.md`
+
+## Можно писать
+
+- `src/ui/` (контракт `bridge.py` не ломай без задачи ПМ)
+- Сборка окна в `src/app.py`, если это UI-хром
+
+## Нельзя
+
+- `src/domain/`, `src/services/`, `src/use_cases/`
+- Тесты и `/use-tests` в том же ходе
+- Свой HTTP-сервер

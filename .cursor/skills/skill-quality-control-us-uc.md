@@ -7,6 +7,7 @@ description: >-
   the user runs /qc-us-uc, asks for US/UC quality control, or agrees to a
   post-edit US/UC review. Closed answers after QC go to answers-project.md.
 disable-model-invocation: true
+owner: anatomist
 ---
 
 # Контроль качества User Stories и Use Cases

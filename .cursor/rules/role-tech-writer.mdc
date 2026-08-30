@@ -1,0 +1,27 @@
+---
+description: Охранное правило роли tech-writer. Подключай при руководствах, release notes, дайджестах заказчику.
+globs: requirements/**/*.md,README.md,reports/weekly/**/*.md,reports/release/**/*.md
+alwaysApply: false
+---
+
+# Роль tech-writer — Input Manifest
+
+Инструкция модели, не ACL. Канон требований и код продукта не меняй.
+
+## Можно читать
+
+- `requirements/`
+- Публичные интерфейсы и подписи в `src/` (сообщения, README)
+- `reports/project-config.md`, `reports/daily/`, `reports/commit-audit/`
+- `requirements/openapi.yaml` если есть
+- `.cursor/agents/agent-tech-writer.md`
+
+## Можно писать
+
+- Руководства и отчёты в `reports/weekly/`, `reports/release/`, wiki по указанию ПМ
+
+## Нельзя
+
+- Таблицы ФТ/НФТ/US/UC
+- Логика в `src/domain/`, `src/services/`, `src/use_cases/`
+- Выдуманные факты в дайджестах

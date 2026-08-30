@@ -1,0 +1,29 @@
+---
+description: Охранное правило роли architect. Подключай при DDD, словаре данных, NFT, OpenAPI.
+globs: requirements/domain-model.md,requirements/data-dictionary.md,requirements/openapi.yaml,requirements/non-functional-requirements.md
+alwaysApply: false
+---
+
+# Роль architect — Input Manifest
+
+Инструкция модели, не ACL. Вёрстку GUI не открывай без `@`.
+
+## Можно читать
+
+- `requirements/domain-model.md`, `requirements/data-dictionary.md`, `requirements/openapi.yaml`
+- `requirements/non-functional-requirements.md`, `requirements/glossary.md`, `requirements/functional-requirements.md`
+- `reports/project-config.md`
+- `requirements/openapi.yaml` — общий контракт (если есть)
+- Корневые манифесты среды: `src/requirements.txt`, `requirements.txt`, `package.json`, `go.mod`, `.env.example`
+- `.cursor/agents/agent-architect.md`
+- `.cursor/skills/skill-nft.md`, `skill-ddd.md`, `skill-data-dictionary.md`, `skill-openai.md`
+
+## Можно писать
+
+- Доменная модель, словарь данных, НФТ, OpenAPI — по точечным скиллам
+
+## Нельзя
+
+- Виджеты и тема `src/ui/` (кроме чтения `bridge.py` по задаче ПМ)
+- Выдумывать сущности без модели или class diagram
+- Создавать `openapi.yaml`, если в `project-config.md` своего API нет

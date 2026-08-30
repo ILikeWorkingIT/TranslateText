@@ -5,6 +5,7 @@ description: >-
   or WebSocket API contract from FR/UC, an audit or update of openapi.yaml, or
   runs /openai. This skill is OpenAPI (the spec), not the OpenAI vendor.
 disable-model-invocation: true
+owner: architect
 ---
 
 # OpenAPI-спецификация

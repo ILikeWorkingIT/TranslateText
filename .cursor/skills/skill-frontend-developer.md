@@ -7,6 +7,7 @@ description: >-
   /frontend. Working UI, not a click-only mockup. Do not use for writing
   tests (/new-tests) or running them (/use-tests).
 disable-model-invocation: true
+owner: front-developer
 ---
 
 # Рабочий UI desktop-приложения

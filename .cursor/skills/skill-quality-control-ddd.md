@@ -5,6 +5,7 @@ description: >-
   aggregate boundaries, entity vs value object, ubiquitous language vs glossary,
   or runs /qc-ddd; also when skill-ddd requires its final stage.
 disable-model-invocation: true
+owner: anatomist
 ---
 
 # Контроль качества DDD-модели

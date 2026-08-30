@@ -6,6 +6,7 @@ description: >-
   /uc. Produces per-case files and list-uc.md. Closed answers go to
   answers-project.md when that file exists.
 disable-model-invocation: true
+owner: analyst
 ---
 
 # Написание Use Cases (Cockburn)

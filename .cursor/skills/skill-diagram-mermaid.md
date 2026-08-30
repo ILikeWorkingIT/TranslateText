@@ -11,6 +11,7 @@ description: >-
   Produces a numbered .md artifact with textual analysis before Mermaid.
   Universal; not tied to any product domain.
 disable-model-invocation: true
+owner: analyst
 ---
 
 # Mermaid: flowchart, DFD, classDiagram, sequenceDiagram и C4

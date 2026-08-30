@@ -7,21 +7,21 @@
 Корневые ориентиры:
 
 * `README.md` — входной документ: что за продукт, как открыть интерфейс, как связан локальный Ollama, иерархия источников.
-* `AGENTS.md` — правила поведения агента аналитика.
+* `AGENTS.md` — общие инварианты агента; предпочтительный вход MAS — `pm` (см. §0 в файле).
 * `.cursor/list-commands.md` — актуальный список команд Cursor, скиллов и агентов. При создании нового скилла, команды или агента ИИ обязан обновить этот файл.
 
 Папки и рабочие файлы:
 
-* `documentation` — файлы ТЗ и материалы разработчика (`Specification.md`, `other-description.md`, `project-structure-v1-1.md`; последний синхронизируется с правилом структуры).
+* `documentation` — файлы ТЗ и материалы разработчика (`Specification.md`, `other-description.md`, `project-structure-v1-1.md`, `mas-description.md`; структура синхронизируется с правилом).
 * `requirements` — `functional-requirements.md`, `non-functional-requirements.md`, `answers-project.md` (закрытые ответы `Axxxx`), `glossary.md`, `domain-model.md`, `data-dictionary.md`; папки `user-stories` и `use-cases`. `openapi.yaml` и скрипты просмотра (`run-openapi-docs.bat`, `preview-openapi.py`) — только если появится свой HTTP API (команда `/openai`); у TranslateText своего сервера в ТЗ нет.
 * `diagrams` — архитектурные и логические диаграммы (PlantUML / Mermaid / BPMN).
-* `.cursor/skills` — промпты и инструкции для AI.
-* `.cursor/rules` — правила для AI.
-* `.cursor/commands` — команды Cursor (`/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/qc-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory` и др.).
-* `.cursor/agents` — файлы агентов; целевая папка, создаётся по необходимости.
+* `.cursor/skills` — точечные скиллы (`skill-<имя>.md`) и маршрутизаторы ролей (`skill-agent-<имя>.md`).
+* `.cursor/rules` — глобальные `rule-*.mdc` и ролевые `role-*.mdc` (Input Manifest; это инструкция модели, не ACL).
+* `.cursor/commands` — команды Cursor (`/pm`, `/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/qc-ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`, `/qc-stage` и др.).
+* `.cursor/agents` — девять Custom Agents MAS (`agent-pm.md`, `agent-analyst.md`, `agent-architect.md`, `agent-tech-writer.md`, `agent-anatomist.md`, `agent-designer.md`, `agent-front-developer.md`, `agent-back-developer.md`, `agent-tester.md`).
 * `src` — исходный код MVP и макет окна: `app.py`, `ui/` (`layout.py`, `panels.py`, `theme.py`, `messages.py`, `bridge.py`, `clipboard.py`), прикладной слой `domain/` / `services/` / `use_cases/` (команда `/app-layer`), launcher `run-ui.bat`; UI — customtkinter (окно приложения, не Gradio/Streamlit и не браузер).
-* `reports` — отчёты: `agent-memory.md` (память агента), `incompatibility-ft-nft.md` (QC ФТ/НФТ), `incompatibility-us-uc.md` (QC US/UC), `domain-model-review.md` (аудит DDD), `test-run.md` (прогон автотестов, очередь багов), `checklist.md` (чеклист срезов MVP).
-* `artifacts` — артефакты проекта, кроме тех, что указаны для папки requirements; целевая папка, создаётся по необходимости.
+* `reports` — отчёты: `agent-memory.md` (память агента), `incompatibility-ft-nft.md` (QC ФТ/НФТ), `incompatibility-us-uc.md` (QC US/UC), `domain-model-review.md` (аудит DDD), `test-run.md` (прогон автотестов, очередь багов), `checklist.md` (чеклист срезов MVP), `project-config.md`, `pm-state.md`, `navigator.md`, `traceability.md`, `backlog-state.md`, `review-report.md` (гейт `/qc-stage`); папки `daily/`, `commit-audit/`, `templates/`, `weekly/`, `release/`.
+* `artifacts` — артефакты проекта, кроме тех, что указаны для папки requirements.
 * `test-data` — зарезервирована на будущее; использовать только по прямому заданию разработчика; целевая папка.
 * `tests` — автотесты (pytest, поверхность desktop/customtkinter); карта покрытия `tests/coverage.md`.
 * `legacy` — при наличии папки исходники другого проекта и аналитика по нему, использовать только по прямому заданию разработчика (исключено из репозитория).
@@ -36,11 +36,11 @@
 * **Словарь данных:** `data-dictionary.md` в `requirements/`.
 * **OpenAPI:** `openapi.yaml` в `requirements/` — только если появится свой HTTP API (команда `/openai`).
 * **Диаграммы:** папка `diagrams/`. Если пользователь задал имя файла — сохранить его (например `diagram-dfd-001.md`, `diagram-class-001.md`). Если имя не задано — `diagram-mermaid-NNN.md`. BPMN 2.0: `bpmn-NNN.bpmn`. Новый предмет моделирования — новый номер; пересоздание той же диаграммы — тот же файл.
-* **Отчёты:** папка `reports/`. Память агента: `agent-memory.md`. QC ФТ/НФТ: `incompatibility-ft-nft.md`. QC US/UC: `incompatibility-us-uc.md`. Аудит DDD: `domain-model-review.md`. Прогон автотестов: `test-run.md`. Чеклист срезов MVP: `checklist.md`.
+* **Отчёты:** папка `reports/`. Память агента: `agent-memory.md`. QC ФТ/НФТ: `incompatibility-ft-nft.md`. QC US/UC: `incompatibility-us-uc.md`. Аудит DDD: `domain-model-review.md`. Прогон автотестов: `test-run.md`. Чеклист срезов MVP: `checklist.md`. MAS: `project-config.md`, `pm-state.md`, `navigator.md`, `traceability.md`, `backlog-state.md`, `review-report.md`. Шаблоны: `reports/templates/`.
 * **Автотесты:** папка `tests/`. Карта покрытия: `tests/coverage.md`. Раннер проекта — pytest (`test_*.py`). Имя теста: `test_should_<поведение>_when_<условие>`. Новый шаблон не плодить. Папка `test-data/` — не фикстуры автотестов; только по прямому заданию разработчика.
-* **Скиллы:** префикс `skill-` + название в lowercase через дефис. Пример: `skill-ft.md`.
-* **Правила:** префикс `rule-` + название. Примеры: `rule-structure.mdc`, `rule-answers-project.mdc`, `rule-analyst-self-learning.mdc`, `rule-propose-qc-ft-nft.mdc`, `rule-propose-qc-us-uc.mdc`, `rule-python.mdc`, `rule-anti-overengineering.mdc`, `rule-anti-sycophancy.mdc`.
-* **Агенты:** префикс `agent-` + название агента. Пример: `agent-analyst.md`. При появлении файлов агентов — в `.cursor/agents`.
+* **Скиллы:** точечные — `skill-<имя>.md` (пример: `skill-ft.md`). Роли MAS — `skill-agent-<имя>.md` (пример: `skill-agent-pm.md`). В YAML front-matter точечных скиллов — поле `owner:` (роль).
+* **Правила:** глобальные — `rule-*.mdc`. Ролевые — `role-<имя>.mdc` (пример: `role-pm.mdc`). Примеры глобальных: `rule-structure.mdc`, `rule-answers-project.mdc`, `rule-analyst-self-learning.mdc`, `rule-propose-qc-ft-nft.mdc`, `rule-propose-qc-us-uc.mdc`, `rule-python.mdc`, `rule-anti-overengineering.mdc`, `rule-anti-sycophancy.mdc`.
+* **Агенты:** префикс `agent-` + имя роли. Девять файлов в `.cursor/agents`.
 * файл со списком всех команд запуска скиллов `list-commands.md`. Содержит актуальный список CLI-команд, скриптов запуска скиллов, команд Cursor и агентов. При создании нового скилла, команды или агента ИИ обязан автоматически обновлять этот файл. Находится в папке `.cursor`.
 
 ---

@@ -5,6 +5,7 @@ description: >-
   or runs /ft. Produces a draft FT table, uncovered edge cases, and questions
   not answered in the source docs. Closed answers go to answers-project.md.
 disable-model-invocation: true
+owner: analyst
 ---
 
 # Написание функциональных требований

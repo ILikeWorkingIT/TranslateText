@@ -7,6 +7,7 @@ description: >-
   runs /diagram-bpmn. Produces importable BPMN 2.0 XML and a short analytical
   outline. Universal; not tied to any product domain.
 disable-model-invocation: true
+owner: analyst
 ---
 
 # Моделирование бизнес-процессов в BPMN (bpmn.io)
