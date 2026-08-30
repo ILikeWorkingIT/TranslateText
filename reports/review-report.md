@@ -4,7 +4,7 @@
 
 ## Манифест стадии
 
-- stage-id: S-11
+- stage-id: S-12
 - команда из `.cursor/list-commands.md`: срез чеклиста; слои `/app-layer` + `/frontend`
 - исполнитель: back-developer, front-developer, tester
 - дата: 2026-08-30
@@ -13,38 +13,37 @@
 
 | Ожидаемый путь | Есть | Замечание |
 | --- | --- | --- |
-| `reports/checklist.md` (S-11) | да | `[x]`; ручная приёмка — чат 2026-08-30 («Проверил. Все работает») |
-| `src/services/extract_source.py` | да | `ExtractSource`; `.txt`/`.md`; utf-8-sig, затем cp1251 |
-| `src/use_cases/load_source.py` | да | `LoadSource` |
-| `src/domain/models.py` | да | `SourceFormat`, `LoadSourceCommand` |
-| `src/ui/bridge.py` | да | `LoadSourceBridge`, чтение ФС в daemon-потоке |
-| `src/ui/layout.py`, `src/ui/messages.py` | да | `askopenfilename`; только `.txt`/`.md`; FT-039 для пустого `.txt`/`.md` |
+| `reports/checklist.md` (S-12) | да | `[x]`; ручная приёмка — чат 2026-08-30 («Все открывает, работает») |
+| `src/services/extract_source.py` | да | `ExtractSource`: `.txt`/`.md`/`.docx`/`.pdf`; пустой/битый → `DocumentParseError` |
+| `src/use_cases/load_source.py` | да | без изменений контракта |
+| `src/requirements.txt` | да | добавлен `pypdf` |
+| `src/ui/bridge.py` | да | `LoadSourceBridge` без смены контракта |
+| `src/ui/layout.py`, `src/ui/messages.py` | да | `OPEN_FILETYPES` — четыре формата; `_source_format_of` для `.docx`/`.pdf` |
 | `tests/test_extract_source.py`, `tests/test_open_source.py` | да | unit + GUI |
-| `reports/test-run.md` | да | 190 passed |
+| `reports/test-run.md` | да | 200 passed |
 
 ## Чек-лист верификации
 
 | # | Критерий | Результат | Заметка |
 | --- | --- | --- | --- |
-| 1 | Артефакт на правильном пути | pass | служба в `services/`; координатор в `use_cases/`; диалог в `layout.py` |
-| 2 | Нет правок вне Input Manifest роли | pass | нет FastAPI; парсер `.docx`/`.pdf` не тащился (S-12) |
+| 1 | Артефакт на правильном пути | pass | служба в `services/`; диалог в `layout.py` / `messages.py` |
+| 2 | Нет правок вне Input Manifest роли | pass | нет FastAPI; OCR/PyMuPDF нет; UI не парсит файлы в `_build_*` |
 | 3 | Существующий точечный скилл не затёрт | pass | `/app-layer` → `skill-app-layer.md`; `/frontend` → `skill-frontend-developer.md` |
-| 4 | Критерии приёмки стадии проверяемы | pass | автотесты + ручная приёмка пользователя |
+| 4 | Критерии приёмки стадии проверяемы | pass | автотесты; ручная приёмка — launcher |
 
 ## Критерии «срез готов»
 
 | Критерий | Результат | Заметка |
 | --- | --- | --- |
-| Выбранный `.txt` или `.md` в «Оригинальный текст» | pass | GUI + unit; A0099 очищает перевод |
-| Отмена диалога оставляет левое поле | pass | пустой путь — служба не зовётся |
-| Иные расширения в этом срезе не открывать | pass | `OPEN_FILETYPES` только `.txt`/`.md`; `docx`/`pdf` → `DocumentParseError` |
+| `.docx` и `.pdf` с текстом заполняют «Оригинальный текст» | pass | unit + GUI |
+| Допустимый формат, текст не извлечён: сообщение, перевод не стартует | pass | пустой docx, PDF без слоя, битые файлы; поле не подменяется |
+| Диалог не предлагает форматы вне FT-042 | pass | фильтр по умолчанию — все четыре; `.xlsx` не открывается |
 
 ## Замечания
 
 | ID | Уровень | Суть | Где |
 | --- | --- | --- | --- |
-| S09-1 | — | Снято: чтение `.txt`/`.md` есть в S-11. | — |
-| S11-1 | minor | Диалог и парсер `.docx`/`.pdf` и полный FT-042 — граница S-12. Сообщение «Текст не извлечён.» для пустого `.txt`/`.md` уже есть. | `src/services/extract_source.py` |
+| S11-1 | — | Снято: `.docx`/`.pdf` и полный FT-042 закрыты в S-12. | — |
 
 ## Вердикт
 

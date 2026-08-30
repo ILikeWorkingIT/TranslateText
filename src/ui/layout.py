@@ -85,6 +85,10 @@ def _source_format_of(path: Path) -> SourceFormat | None:
         return "txt"
     if suffix == ".md":
         return "md"
+    if suffix == ".docx":
+        return "docx"
+    if suffix == ".pdf":
+        return "pdf"
     return None
 
 

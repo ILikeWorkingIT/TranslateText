@@ -1,7 +1,13 @@
 """Подписи из глоссария и статичные образцы для вида экрана."""
 
 LABEL_OPEN_FILE = "Открыть файл"
-OPEN_FILETYPES = (("TXT", "*.txt"), ("Markdown", "*.md"))
+OPEN_FILETYPES = (
+    ("Исходные файлы", "*.txt *.md *.docx *.pdf"),
+    ("TXT", "*.txt"),
+    ("Markdown", "*.md"),
+    ("DOCX", "*.docx"),
+    ("PDF", "*.pdf"),
+)
 LABEL_SAVE_TRANSLATION = "Сохранить перевод"
 SAVE_FILETYPES = (("TXT", "*.txt"), ("DOCX", "*.docx"))
 LABEL_ORIGINAL = "Оригинальный текст"

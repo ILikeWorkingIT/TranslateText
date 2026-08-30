@@ -1,4 +1,4 @@
-"""S-11: ExtractSource / LoadSource без GUI (FT-003, FT-039 для .txt/.md)."""
+"""S-11/S-12: ExtractSource / LoadSource без GUI (FT-003, FT-039, FT-042)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from docx import Document
+from pypdf import PdfWriter
 
 from domain.errors import DocumentParseError
 from domain.models import LoadSourceCommand
@@ -30,6 +32,51 @@ def _wait_until(predicate: Callable[[], bool]) -> None:
             return
         time.sleep(0.02)
     raise AssertionError("load source bridge did not finish")
+
+
+def _write_docx(path: Path, text: str) -> None:
+    document = Document()
+    lines = text.split("\n")
+    first = lines[0] if lines else ""
+    if document.paragraphs:
+        document.paragraphs[0].text = first
+    else:
+        document.add_paragraph(first)
+    for line in lines[1:]:
+        document.add_paragraph(line)
+    document.save(str(path))
+
+
+def _pdf_with_text(line: str) -> bytes:
+    escaped = line.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+    stream = f"BT /F1 12 Tf 72 720 Td ({escaped}) Tj ET".encode("latin-1")
+    bodies = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        (
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+            b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
+        ),
+        b"<< /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for index, body in enumerate(bodies, start=1):
+        offsets.append(len(out))
+        out += f"{index} 0 obj\n".encode("ascii")
+        out += body
+        out += b"\nendobj\n"
+    xref_at = len(out)
+    out += f"xref\n0 {len(bodies) + 1}\n".encode("ascii")
+    out += b"0000000000 65535 f \n"
+    for offset in offsets[1:]:
+        out += f"{offset:010d} 00000 n \n".encode("ascii")
+    out += (
+        f"trailer << /Size {len(bodies) + 1} /Root 1 0 R >>\n"
+        f"startxref\n{xref_at}\n%%EOF\n"
+    ).encode("ascii")
+    return bytes(out)
 
 
 def test_should_return_utf8_text_when_txt_file_is_readable(tmp_path: Path) -> None:
@@ -76,14 +123,63 @@ def test_should_raise_parse_error_when_file_is_only_whitespace(tmp_path: Path) -
         ExtractSource().run(str(path), "txt")
 
 
-def test_should_raise_parse_error_when_format_is_docx_or_pdf(tmp_path: Path) -> None:
-    """S-11: `.docx` / `.pdf` не разбираем (S-12)."""
+def test_should_return_paragraphs_when_docx_has_text(tmp_path: Path) -> None:
+    """FT-003 / FT-042: `.docx` — абзацы в сырой текст."""
     path = tmp_path / "doc.docx"
-    path.write_bytes(b"pk")
+    _write_docx(path, "Первый абзац\nВторой абзац")
+    assert ExtractSource().run(str(path), "docx") == "Первый абзац\nВторой абзац"
+
+
+def test_should_return_page_text_when_pdf_has_extractable_text(tmp_path: Path) -> None:
+    """FT-003 / FT-042: `.pdf` с текстовым слоем."""
+    path = tmp_path / "doc.pdf"
+    path.write_bytes(_pdf_with_text("Hello PDF"))
+    text = ExtractSource().run(str(path), "pdf")
+    assert "Hello PDF" in text
+
+
+def test_should_raise_parse_error_when_docx_is_empty(tmp_path: Path) -> None:
+    """FT-039: пустой `.docx` — не успех."""
+    path = tmp_path / "empty.docx"
+    _write_docx(path, "")
     with pytest.raises(DocumentParseError):
         ExtractSource().run(str(path), "docx")
+
+
+def test_should_raise_parse_error_when_pdf_has_no_text_layer(tmp_path: Path) -> None:
+    """FT-039: PDF без текстового слоя (скан)."""
+    path = tmp_path / "scan.pdf"
+    writer = PdfWriter()
+    writer.add_blank_page(width=72, height=72)
+    writer.write(str(path))
     with pytest.raises(DocumentParseError):
-        ExtractSource().run(str(tmp_path / "a.pdf"), "pdf")
+        ExtractSource().run(str(path), "pdf")
+
+
+def test_should_raise_parse_error_when_docx_is_corrupt(tmp_path: Path) -> None:
+    """UC-002 E2: битый `.docx`."""
+    path = tmp_path / "broken.docx"
+    path.write_bytes(b"pk not a package")
+    with pytest.raises(DocumentParseError):
+        ExtractSource().run(str(path), "docx")
+
+
+def test_should_raise_parse_error_when_pdf_is_corrupt(tmp_path: Path) -> None:
+    """UC-002 E2: битый `.pdf`."""
+    path = tmp_path / "broken.pdf"
+    path.write_bytes(b"%PDF-1.4 not a real file")
+    with pytest.raises(DocumentParseError):
+        ExtractSource().run(str(path), "pdf")
+
+
+def test_should_return_text_when_load_source_opens_docx(tmp_path: Path) -> None:
+    """LoadSource координирует ExtractSource для `.docx`."""
+    path = tmp_path / "in.docx"
+    _write_docx(path, "из документа")
+    text = LoadSource().run(
+        LoadSourceCommand(request_id=2, path=str(path), source_format="docx")
+    )
+    assert text == "из документа"
 
 
 def test_should_raise_parse_error_when_file_cannot_be_read(tmp_path: Path) -> None:

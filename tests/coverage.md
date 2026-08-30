@@ -2,7 +2,7 @@
 
 Поверхность: desktop (CustomTkinter). Раннер: pytest. Прогон — команда `/use-tests`.
 
-Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Срез S-05: пустая инструкция — диалог FT-029, согласие или отмена, базовый промпт текущего направления. Срез S-06: лимит 100 000 символов Unicode — поле держит >100k, отказ при «Перевести» без Ollama. Срез S-07: нарезка по абзацам, очередь перевода, прогресс по доле исходника, склейка. Срез S-07b: сверхдлинный абзац (FT-025). Срез S-07c: отмена очереди (FT-054) — unit `StartTranslation` / `TranslationBridge.cancel` и GUI-кнопка «Отменить перевод». Срез S-08: сбой фрагмента и таймаут 60 с (FT-028). Срез S-09: предупреждение о несохранённом переводе (FT-032, FT-033, UC-006). Срез S-10: ручное «Сохранить перевод» (FT-004, FT-043, FT-044, FT-046, UC-003). Срез S-11: открыть `.txt` / `.md` (FT-003, FT-047, UC-002). Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
+Срез S-01: подписи, пустые поля, блокировки, направление перевода (FT-051…FT-053). Срез S-02: опрос `GET /api/tags`, выбор модели, клик/фокус «Модель» в окне. Срез S-03: статус FT-024, восстановление по клику на «Модель», приоритет подсказки FT-050, оригинал не очищается. Срез S-04: «Перевести» одного короткого фрагмента (EN→RU / RU→EN), прогресс 0/100, снимок FT-011, замена поля. Срез S-05: пустая инструкция — диалог FT-029, согласие или отмена, базовый промпт текущего направления. Срез S-06: лимит 100 000 символов Unicode — поле держит >100k, отказ при «Перевести» без Ollama. Срез S-07: нарезка по абзацам, очередь перевода, прогресс по доле исходника, склейка. Срез S-07b: сверхдлинный абзац (FT-025). Срез S-07c: отмена очереди (FT-054) — unit `StartTranslation` / `TranslationBridge.cancel` и GUI-кнопка «Отменить перевод». Срез S-08: сбой фрагмента и таймаут 60 с (FT-028). Срез S-09: предупреждение о несохранённом переводе (FT-032, FT-033, UC-006). Срез S-10: ручное «Сохранить перевод» (FT-004, FT-043, FT-044, FT-046, UC-003). Срез S-11: открыть `.txt` / `.md` (FT-003, FT-047, UC-002). Срез S-12: `ExtractSource` для `.docx` / `.pdf` и `DocumentParseError` (FT-039, FT-042); диалог полного набора — `/frontend`. Живой Ollama в тестах не вызывается (MockTransport / фейк-порт). Окно в pytest — `HarnessWindow`: `after` из воркера очередится и выполняется в потоке Tk (`drain_worker_after` в `pump_until`). `event_generate` на `combo-model` доставляет `<Button-1>` / `<FocusIn>` в обработчики окна (CTkComboBox при `withdraw()` события не принимает).
 
 | Тест | Файл | Требования | Слой | Состояние UI | Примечание |
 | --- | --- | --- | --- | --- | --- |
@@ -179,7 +179,13 @@
 | `test_should_return_markdown_text_when_md_file_is_readable` | `tests/test_extract_source.py` | FT-003 | happy | — | `.md` |
 | `test_should_raise_parse_error_when_file_is_empty` | `tests/test_extract_source.py` | FT-039; S-11 | negative | — | пустой файл |
 | `test_should_raise_parse_error_when_file_is_only_whitespace` | `tests/test_extract_source.py` | FT-039; S-11 | negative | — | пробелы |
-| `test_should_raise_parse_error_when_format_is_docx_or_pdf` | `tests/test_extract_source.py` | S-11 | negative | — | не S-12 |
+| `test_should_return_paragraphs_when_docx_has_text` | `tests/test_extract_source.py` | FT-003; FT-042; S-12 | happy | — | python-docx |
+| `test_should_return_page_text_when_pdf_has_extractable_text` | `tests/test_extract_source.py` | FT-003; FT-042; S-12 | happy | — | pypdf |
+| `test_should_raise_parse_error_when_docx_is_empty` | `tests/test_extract_source.py` | FT-039; S-12 | negative | — | пустой docx |
+| `test_should_raise_parse_error_when_pdf_has_no_text_layer` | `tests/test_extract_source.py` | FT-039; S-12 | negative | — | скан без текста |
+| `test_should_raise_parse_error_when_docx_is_corrupt` | `tests/test_extract_source.py` | FT-039; UC-002 E2 | negative | — | битый docx |
+| `test_should_raise_parse_error_when_pdf_is_corrupt` | `tests/test_extract_source.py` | FT-039; UC-002 E2 | negative | — | битый pdf |
+| `test_should_return_text_when_load_source_opens_docx` | `tests/test_extract_source.py` | FT-003; S-12 | happy | — | LoadSource |
 | `test_should_raise_parse_error_when_file_cannot_be_read` | `tests/test_extract_source.py` | UC-002 E1 | negative | — | нет файла |
 | `test_should_keep_text_longer_than_100k_when_extracted` | `tests/test_extract_source.py` | S-11; FT-030 | edge | — | лимит на перевод |
 | `test_should_return_text_when_load_source_use_case_runs` | `tests/test_extract_source.py` | FT-003 | happy | — | LoadSource |
@@ -187,8 +193,12 @@
 | `test_should_notify_error_when_load_bridge_parse_fails` | `tests/test_extract_source.py` | FT-039 | negative | — | клей |
 | `test_should_put_txt_contents_in_original_when_user_opens_file` | `tests/test_open_source.py` | FT-003; US-002 AC1 | happy | success | GUI .txt |
 | `test_should_put_md_contents_in_original_when_user_opens_file` | `tests/test_open_source.py` | FT-003 | happy | success | GUI .md |
-| `test_should_offer_only_txt_and_md_when_open_dialog_opens` | `tests/test_open_source.py` | S-11 | happy | dialog | не .docx/.pdf |
+| `test_should_offer_txt_md_docx_pdf_when_open_dialog_opens` | `tests/test_open_source.py` | FT-042; S-12 | happy | dialog | фильтр по умолчанию — все четыре |
 | `test_should_keep_original_when_user_cancels_open_dialog` | `tests/test_open_source.py` | FT-047; US-002 AC4 | negative | dialog | отмена |
 | `test_should_keep_original_and_show_message_when_txt_is_empty` | `tests/test_open_source.py` | FT-039; S-11 | negative | error | поле на месте |
 | `test_should_clear_translation_when_open_file_succeeds` | `tests/test_open_source.py` | A0099 | happy | success | очистка перевода |
 | `test_should_keep_translation_when_open_file_fails` | `tests/test_open_source.py` | UC-002 | negative | error | перевод на месте |
+| `test_should_put_docx_contents_in_original_when_user_opens_file` | `tests/test_open_source.py` | FT-003; FT-042; S-12 | happy | success | GUI .docx |
+| `test_should_put_pdf_contents_in_original_when_user_opens_file` | `tests/test_open_source.py` | FT-003; FT-042; S-12 | happy | success | GUI .pdf |
+| `test_should_keep_original_and_show_message_when_pdf_has_no_text` | `tests/test_open_source.py` | FT-039; S-12 | negative | error | скан PDF |
+| `test_should_not_open_other_format_when_path_is_not_allowed` | `tests/test_open_source.py` | FT-042; A0046 | negative | error | .xlsx не открывать |
