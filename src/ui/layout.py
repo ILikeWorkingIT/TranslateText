@@ -11,7 +11,7 @@ import customtkinter as ctk
 from domain.models import ModelsRefreshedEvent, QueueEvent
 from services.ollama_gateway import OllamaGateway
 from ui.bridge import ModelsBridge, TranslationBridge
-from ui.clipboard import read_plain_clipboard
+from ui.clipboard import read_plain_clipboard, write_plain_clipboard
 from ui.messages import (
     DIRECTION_EN_RU,
     HINT_IN_PROGRESS,
@@ -30,6 +30,27 @@ from ui.theme import BG, CARD, FONT_STATUS, TEXT
 
 TranslateState = Literal["idle", "loading"]
 OllamaAvailability = Literal["unknown", "available", "unavailable"]
+
+_VK_C = 67
+_VK_V = 86
+_COPY_KEYSYMS = frozenset({"c", "cyrillic_es"})
+_PASTE_KEYSYMS = frozenset({"v", "cyrillic_em"})
+
+
+def _event_keycode(event: tkinter.Event) -> int:
+    return int(getattr(event, "keycode", 0) or 0)
+
+
+def _event_keysym(event: tkinter.Event) -> str:
+    return str(getattr(event, "keysym", "") or "").lower()
+
+
+def _is_copy_key(event: tkinter.Event) -> bool:
+    return _event_keycode(event) == _VK_C or _event_keysym(event) in _COPY_KEYSYMS
+
+
+def _is_paste_key(event: tkinter.Event) -> bool:
+    return _event_keycode(event) == _VK_V or _event_keysym(event) in _PASTE_KEYSYMS
 
 
 class TranslateTextWindow(ctk.CTk):
@@ -163,12 +184,19 @@ class TranslateTextWindow(ctk.CTk):
             self._insert_clipboard(box)
             return "break"
 
-        def on_ctrl_key(event: tkinter.Event) -> str | None:
-            # VK_V=86 не зависит от раскладки: на RU keysym = Cyrillic_em.
-            if int(getattr(event, "keycode", 0) or 0) != 86:
-                return None
-            self._insert_clipboard(box)
+        def on_copy(_event: tkinter.Event) -> str:
+            self._copy_selection(box)
             return "break"
+
+        def on_ctrl_key(event: tkinter.Event) -> str | None:
+            # VK не зависит от раскладки: RU C → Cyrillic_es, V → Cyrillic_em.
+            if _is_copy_key(event):
+                self._copy_selection(box)
+                return "break"
+            if _is_paste_key(event):
+                self._insert_clipboard(box)
+                return "break"
+            return None
 
         inner = getattr(box, "_textbox", box)
         for sequence in (
@@ -183,6 +211,17 @@ class TranslateTextWindow(ctk.CTk):
         ):
             inner.bind(sequence, on_paste, add="+")
             box.bind(sequence, on_paste)
+        for sequence in (
+            "<<Copy>>",
+            "<Control-c>",
+            "<Control-C>",
+            "<Control-Key-c>",
+            "<Control-Key-C>",
+            "<Control-Key-Cyrillic_es>",
+            "<Control-Key-Cyrillic_ES>",
+        ):
+            inner.bind(sequence, on_copy, add="+")
+            box.bind(sequence, on_copy)
         inner.bind("<Control-KeyPress>", on_ctrl_key, add="+")
         box.bind("<Control-KeyPress>", on_ctrl_key)
         try:
@@ -190,6 +229,11 @@ class TranslateTextWindow(ctk.CTk):
                 "<<Paste>>",
                 "<Control-Key-Cyrillic_em>",
                 "<Control-Key-Cyrillic_EM>",
+            )
+            inner.event_add(
+                "<<Copy>>",
+                "<Control-Key-Cyrillic_es>",
+                "<Control-Key-Cyrillic_ES>",
             )
         except tkinter.TclError:
             pass
@@ -207,27 +251,63 @@ class TranslateTextWindow(ctk.CTk):
             "<Control-Key-Cyrillic_em>",
             "<Control-Key-Cyrillic_EM>",
             "<Shift-Insert>",
-            "<Control-KeyPress>",
         ):
             tkinter.Misc.bind_all(self, sequence, self._on_window_paste, add="+")
+        for sequence in (
+            "<Control-c>",
+            "<Control-C>",
+            "<Control-Key-c>",
+            "<Control-Key-C>",
+            "<Control-Key-Cyrillic_es>",
+            "<Control-Key-Cyrillic_ES>",
+        ):
+            tkinter.Misc.bind_all(self, sequence, self._on_window_copy, add="+")
+        tkinter.Misc.bind_all(
+            self, "<Control-KeyPress>", self._on_window_ctrl_key, add="+"
+        )
         try:
             self.event_add(
                 "<<Paste>>",
                 "<Control-Key-Cyrillic_em>",
                 "<Control-Key-Cyrillic_EM>",
             )
+            self.event_add(
+                "<<Copy>>",
+                "<Control-Key-Cyrillic_es>",
+                "<Control-Key-Cyrillic_ES>",
+            )
         except tkinter.TclError:
             pass
+
+    def _on_window_ctrl_key(self, event: tkinter.Event) -> str | None:
+        if _is_copy_key(event):
+            return self._on_window_copy(event)
+        if _is_paste_key(event):
+            return self._on_window_paste(event)
+        return None
+
+    def _on_window_copy(self, _event: tkinter.Event) -> str | None:
+        if not getattr(self, "_paste_alive", False):
+            return None
+        if not self.winfo_exists():
+            return None
+        box = self._focused_app_textbox()
+        if box is None:
+            box = self._textbox_under_pointer()
+        if box is None:
+            return None
+        if self._copy_selection(box):
+            return "break"
+        return None
 
     def _on_window_paste(self, event: tkinter.Event) -> str | None:
         if not getattr(self, "_paste_alive", False):
             return None
         if not self.winfo_exists():
             return None
-        keycode = int(getattr(event, "keycode", 0) or 0)
-        keysym = str(getattr(event, "keysym", "") or "").lower()
-        # Control-KeyPress ловит все Ctrl+*; только физическая V / Cyrillic_em / Insert.
-        if keycode not in (0, 86) and keysym not in (
+        keycode = _event_keycode(event)
+        keysym = _event_keysym(event)
+        if keycode not in (0, _VK_V) and keysym not in (
             "v",
             "cyrillic_em",
             "insert",
@@ -269,6 +349,17 @@ class TranslateTextWindow(ctk.CTk):
                 break
             current = parent
         return None
+
+    def _copy_selection(self, box: ctk.CTkTextbox) -> bool:
+        inner = getattr(box, "_textbox", box)
+        try:
+            text = str(inner.get("sel.first", "sel.last"))
+        except tkinter.TclError:
+            return False
+        if text == "":
+            return False
+        write_plain_clipboard(self, text)
+        return True
 
     def _insert_clipboard(self, box: ctk.CTkTextbox) -> bool:
         text = read_plain_clipboard(self)

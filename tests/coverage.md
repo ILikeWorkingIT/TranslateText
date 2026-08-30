@@ -105,3 +105,6 @@
 | `test_should_split_text1_into_three_fragments_when_loaded` | `tests/test_text1_ru_en.py` | A0141; A0142 | happy | — | `test-data/Text1.txt`; Task в фрагменте 2 |
 | `test_should_start_new_fragment_after_filled_paragraph_break` | `tests/test_split_text.py` | A0141; A0142 | edge | — | абзац ≥500 + `\\n\\n` — новый фрагмент |
 | `test_should_translate_all_three_text1_fragments_when_ru_en` | `tests/test_text1_ru_en.py` | FT-015; FT-020; A0145 | happy | — | три вызова Ollama, склейка EN, без утечки хвоста |
+| `test_should_copy_translation_when_ctrl_c_uses_cyrillic_es` | `tests/test_clipboard_copy.py` | B-001 | happy | — | RU Ctrl+C, VK_C=67 |
+| `test_should_copy_translation_when_ctrl_c_uses_latin_c` | `tests/test_clipboard_copy.py` | B-001 | happy | — | EN Ctrl+C |
+| `test_should_treat_cyrillic_es_as_copy_not_paste` | `tests/test_clipboard_copy.py` | B-001 | edge | — | keysym RU C ≠ paste |

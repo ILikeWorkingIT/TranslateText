@@ -64,6 +64,12 @@ def read_plain_clipboard(widget: tkinter.Misc) -> str:
     return ""
 
 
+def write_plain_clipboard(widget: tkinter.Misc, text: str) -> None:
+    """Текст в буфер через Tcl — читается Ctrl+V и другими приложениями."""
+    widget.clipboard_clear()
+    widget.clipboard_append(text)
+
+
 def plain_text_from_html_clipboard(raw: str) -> str:
     fragment = _html_fragment(raw)
     fragment = re.sub(r"(?is)<br\s*/?>", "\n", fragment)

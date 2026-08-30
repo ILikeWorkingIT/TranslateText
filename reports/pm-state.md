@@ -35,4 +35,5 @@
 - Сделано: `/app-layer` S-07 — `SplitText` по абзацам; очередь фрагментов в `StartTranslation`
 - Сделано: `/frontend` S-07 — прогресс и частичная склейка в поле перевода
 - Сделано: unit-тесты S-07 в `test_split_text.py`, `test_start_translation.py`
+- Сделано: B-001 — Ctrl+C на русской раскладке (VK_C / Cyrillic_es), как Ctrl+V (VK_V / Cyrillic_em)
 - Следующий срез после приёмки: **S-07b** — сверхдлинный абзац (FT-025)
