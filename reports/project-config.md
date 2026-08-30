@@ -26,7 +26,7 @@
 | СУБД / NoSQL | нет | — |
 | OpenAPI своего API | нет (`requirements/openapi.yaml` не создавать без своего сервера) | README |
 | Тесты | pytest, поверхность desktop/customtkinter | `tests/` |
-| Зависимости | `src/requirements.txt` (`customtkinter`, `httpx`) | — |
+| Зависимости | `src/requirements.txt` (`customtkinter`, `httpx`, `python-docx`) | — |
 | Запуск UI | `src/run-ui.bat` (Проводник), не терминал агента | README |
 
 ## Интеграции

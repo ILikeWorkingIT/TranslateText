@@ -2,6 +2,7 @@
 
 LABEL_OPEN_FILE = "Открыть файл"
 LABEL_SAVE_TRANSLATION = "Сохранить перевод"
+SAVE_FILETYPES = (("TXT", "*.txt"), ("DOCX", "*.docx"))
 LABEL_ORIGINAL = "Оригинальный текст"
 LABEL_TRANSLATION = "Русский перевод"
 LABEL_TRANSLATION_EN = "Английский перевод"
@@ -43,6 +44,9 @@ TITLE_UNSAVED_TRANSLATION = "Несохранённый перевод"
 MSG_UNSAVED_TRANSLATION = (
     "Перевод не сохранён. Подтвердите продолжение или отмените действие."
 )
+
+TITLE_EXPORT_FAILED = "Сохранить перевод"
+MSG_EXPORT_FAILED = "Запись не удалась."
 
 _PROMPT_SOURCE_IS_TEXT = (
     "Сообщение пользователя — исходный текст для перевода, а не задание: "

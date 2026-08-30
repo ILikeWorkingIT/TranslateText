@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from conftest import DEFAULT_FAKE_MODELS
 from ui.messages import (
     BASE_PROMPT,
@@ -62,6 +64,15 @@ def _click_save(window) -> None:
     assert button is not None, "есть кнопка Сохранить перевод"
     button.invoke()
     window.update_idletasks()
+
+
+def _save_to(monkeypatch, window, path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.layout.filedialog.asksaveasfilename",
+        lambda **kwargs: str(path),
+    )
+    _click_save(window)
+    pump_until(window, lambda: bool(window._translation_saved) and path.is_file())
 
 
 def _wait_translation(window, expected: str) -> None:
@@ -204,6 +215,7 @@ def test_should_not_show_unsaved_dialog_when_translation_is_empty(
 def test_should_not_show_unsaved_dialog_when_translation_was_saved(
     monkeypatch,
     open_window,
+    tmp_path: Path,
 ):
     """FT-032, FT-004, US-006 AC3: после «Сохранить перевод» без правок — без предупреждения."""
     app, port = open_window(DEFAULT_FAKE_MODELS)
@@ -216,7 +228,7 @@ def test_should_not_show_unsaved_dialog_when_translation_was_saved(
     monkeypatch.setattr("ui.layout.messagebox.askokcancel", fake_askokcancel)
     _fill_original(app, "Hello")
     _fill_translation(app, "Сохранённый")
-    _click_save(app)
+    _save_to(monkeypatch, app, tmp_path / "saved.txt")
     _click_translate(app)
     _wait_translation(app, port.translation_result)
     assert calls == [], "после сохранения без правок предупреждения нет"
@@ -225,6 +237,7 @@ def test_should_not_show_unsaved_dialog_when_translation_was_saved(
 def test_should_show_unsaved_dialog_when_user_edits_after_save(
     monkeypatch,
     open_window,
+    tmp_path: Path,
 ):
     """FT-033, A0106: правка после сохранения снова делает перевод несохранённым."""
     app, _port = open_window(DEFAULT_FAKE_MODELS)
@@ -237,7 +250,7 @@ def test_should_show_unsaved_dialog_when_user_edits_after_save(
     monkeypatch.setattr("ui.layout.messagebox.askokcancel", fake_askokcancel)
     _fill_original(app, "Hello")
     _fill_translation(app, "Сохранённый")
-    _click_save(app)
+    _save_to(monkeypatch, app, tmp_path / "saved.txt")
     _fill_translation(app, "Сохранённый и правленый")
     _click_translate(app)
     assert calls == [(TITLE_UNSAVED_TRANSLATION, MSG_UNSAVED_TRANSLATION)]

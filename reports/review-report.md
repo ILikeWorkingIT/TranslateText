@@ -4,7 +4,7 @@
 
 ## Манифест стадии
 
-- stage-id: S-09
+- stage-id: S-10
 - команда из `.cursor/list-commands.md`: срез чеклиста; слои `/app-layer` + `/frontend`
 - исполнитель: back-developer, front-developer, tester
 - дата: 2026-08-30
@@ -13,41 +13,40 @@
 
 | Ожидаемый путь | Есть | Замечание |
 | --- | --- | --- |
-| `reports/checklist.md` (S-09) | да | `[x]`; ручная приёмка 7 шагов — чат 2026-08-30 |
-| `src/use_cases/unsaved_translation.py` | да | гейт `translationSaved` / UC-006 |
-| `src/use_cases/start_translation.py` | да | `require_unsaved_confirmed` до очереди и FT-029 |
-| `src/ui/layout.py`, `src/ui/messages.py` | да | диалог FT-032; порядок FT-032 → FT-029 |
-| `src/ui/bridge.py` | да | поля команды и `UnsavedTranslationError` |
-| `tests/test_unsaved_translation.py`, `tests/test_unsaved_warning.py` | да | unit + GUI |
-| `reports/test-run.md` | да | 157 passed |
+| `reports/checklist.md` (S-10) | да | `[x]`; ручная приёмка — чат 2026-08-30 («Проверил, работает») |
+| `src/services/export_translation.py` | да | `ExportTranslation`; `.txt` UTF-8, `.docx` python-docx |
+| `src/domain/models.py` | да | `ExportFormat`, `ExportTranslationCommand` |
+| `src/domain/errors.py` | да | `ExportWriteError` |
+| `src/ui/bridge.py` | да | `ExportBridge`, запись ФС в daemon-потоке |
+| `src/ui/layout.py`, `src/ui/messages.py` | да | `asksaveasfilename`; только `.txt`/`.docx`; FT-044 `showerror` |
+| `src/requirements.txt` | да | `python-docx` |
+| `tests/test_export_translation.py`, `tests/test_export_save.py` | да | unit + GUI |
+| `reports/test-run.md` | да | 171 passed |
 
 ## Чек-лист верификации
 
 | # | Критерий | Результат | Заметка |
 | --- | --- | --- | --- |
-| 1 | Артефакт на правильном пути | pass | слой в `domain/` / `use_cases/` / `bridge.py`; хром в `layout.py` / `messages.py` |
-| 2 | Нет правок вне Input Manifest роли | pass | нет FastAPI; `ExtractSource` и диалог файла не тащились (S-11 / S-10) |
-| 3 | Существующий точечный скилл не затёрт | pass | `/app-layer`, `/frontend` указывают на те же скиллы |
-| 4 | Критерии приёмки стадии проверяемы | pass | автотесты + ручные 7 шагов; A0099 в хуке до загрузки файла (S-11) |
+| 1 | Артефакт на правильном пути | pass | служба в `services/`; клей в `bridge.py`; диалог в `layout.py` |
+| 2 | Нет правок вне Input Manifest роли | pass | нет FastAPI; `ExtractSource` / открытие файла не тащились (S-11) |
+| 3 | Существующий точечный скилл не затёрт | pass | `/app-layer` → `skill-app-layer.md`; `/frontend` → `skill-frontend-developer.md` |
+| 4 | Критерии приёмки стадии проверяемы | pass | автотесты + ручная приёмка пользователя |
 
 ## Критерии «срез готов»
 
 | Критерий | Результат | Заметка |
 | --- | --- | --- |
-| Предупреждение перед «Перевести» и «Открыть файл» | pass | GUI + ручная приёмка |
-| Отмена не меняет поля и не стартует перевод / загрузку | pass | |
-| Подтверждение «Перевести» заменяет поле (FT-035) | pass | |
-| Подтверждение «Открыть файл» + успех очищает перевод (A0099) | pass | автотест `_apply_loaded_source`; живой файл — S-11 |
-| После «Сохранить перевод» без правок предупреждения нет | pass | флаг сохранённости; запись на диск — S-10 |
-| Пустое поле — без предупреждения | pass | |
-| Смена направления не показывает FT-032 (FT-053) | pass | |
+| Диалог только `.txt` и `.docx`; запись = правое поле | pass | `SAVE_FILETYPES`; GUI + unit |
+| Файл на пути — диалог ОС; отмена не меняет файл | pass | `confirmoverwrite=True`; пустой путь диалога — служба не зовётся |
+| Сбой записи не очищает поле и не блокирует кнопку | pass | `ExportWriteError` → `MSG_EXPORT_FAILED`; `save` остаётся `normal` |
+| После успеха `translationSaved` до правки поля | pass | `_on_export_success`; регресс FT-032 в `test_unsaved_warning.py` |
 
 ## Замечания
 
 | ID | Уровень | Суть | Где |
 | --- | --- | --- | --- |
-| S09-1 | minor | «Открыть файл» после подтверждения UC-006 файл не читает (`_continue_open_file` пустой). A0099 срабатывает при `_apply_loaded_source`. Это граница S-11, не дыра FT-032. | `src/ui/layout.py` |
-| S09-2 | minor | «Сохранить перевод» ставит `translationSaved` без диалога ОС и без записи. Сохранённость FT-004 для предупреждения есть; выгрузка — S-10. | `src/ui/layout.py` `_on_save_translation` |
+| S09-1 | minor | «Открыть файл» после подтверждения UC-006 файл не читает. Граница S-11. | `src/ui/layout.py` `_continue_open_file` |
+| S09-2 | — | Снято: запись на диск и диалог ОС есть в S-10. | — |
 
 ## Вердикт
 

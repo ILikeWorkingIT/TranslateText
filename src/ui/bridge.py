@@ -7,17 +7,21 @@ from typing import Protocol
 from domain.errors import (
     AppLayerError,
     EmptyInstructionError,
+    ExportWriteError,
     OllamaUnavailableError,
     SourceLimitExceededError,
     UnsavedTranslationError,
 )
 from domain.models import (
+    ExportFormat,
+    ExportTranslationCommand,
     ModelsRefreshedEvent,
     OllamaPort,
     QueueEvent,
     RefreshModelsCommand,
     StartTranslationCommand,
 )
+from services.export_translation import ExportTranslation
 from use_cases.refresh_models import RefreshModels
 from use_cases.start_translation import StartTranslation, require_ready_instruction
 from use_cases.unsaved_translation import require_unsaved_confirmed
@@ -224,3 +228,80 @@ class TranslationBridge:
         if not self._host.winfo_exists():
             return False
         return request_id == self.translation_request_id
+
+
+class ExportBridge:
+    def __init__(
+        self,
+        *,
+        host: UiHost,
+        on_success: Callable[[int, str], None],
+        on_error: Callable[[int], None],
+    ) -> None:
+        self._host = host
+        self._service = ExportTranslation()
+        self._on_success = on_success
+        self._on_error = on_error
+        self._stop = threading.Event()
+        self.export_request_id = 0
+
+    def start(
+        self,
+        *,
+        translation_text: str,
+        path: str,
+        export_format: ExportFormat,
+    ) -> None:
+        if self._stop.is_set():
+            return
+        if len(translation_text) == 0:
+            return
+        self.export_request_id += 1
+        command = ExportTranslationCommand(
+            request_id=self.export_request_id,
+            translation_text=translation_text,
+            path=path,
+            export_format=export_format,
+        )
+        worker = threading.Thread(
+            target=self._worker,
+            args=(command,),
+            daemon=True,
+        )
+        worker.start()
+
+    def close(self) -> None:
+        self._stop.set()
+
+    def _worker(self, command: ExportTranslationCommand) -> None:
+        try:
+            self._service.run(command)
+        except ExportWriteError:
+            if self._stop.is_set():
+                return
+            self._host.call_on_ui(
+                lambda rid=command.request_id: self._apply_error(rid)
+            )
+            return
+        if self._stop.is_set():
+            return
+        self._host.call_on_ui(
+            lambda delivered=command: self._apply_success(delivered)
+        )
+
+    def _apply_success(self, command: ExportTranslationCommand) -> None:
+        if not self._can_apply(command.request_id):
+            return
+        self._on_success(command.request_id, command.translation_text)
+
+    def _apply_error(self, request_id: int) -> None:
+        if not self._can_apply(request_id):
+            return
+        self._on_error(request_id)
+
+    def _can_apply(self, request_id: int) -> bool:
+        if self._stop.is_set():
+            return False
+        if not self._host.winfo_exists():
+            return False
+        return request_id == self.export_request_id

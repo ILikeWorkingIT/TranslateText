@@ -3,27 +3,32 @@ from __future__ import annotations
 import queue
 import tkinter
 from collections.abc import Callable
-from tkinter import messagebox
+from pathlib import Path
+from tkinter import filedialog, messagebox
 from typing import Literal
 
 import customtkinter as ctk
 
-from domain.models import ModelsRefreshedEvent, QueueEvent
+from domain.models import ExportFormat, ModelsRefreshedEvent, QueueEvent
 from services.ollama_gateway import OllamaGateway
-from ui.bridge import ModelsBridge, TranslationBridge
+from ui.bridge import ExportBridge, ModelsBridge, TranslationBridge
 from ui.clipboard import read_plain_clipboard, write_plain_clipboard
 from ui.messages import (
     DIRECTION_EN_RU,
     HINT_IN_PROGRESS,
     HINT_NO_TEXT,
     HINT_OLLAMA_DOWN,
+    LABEL_SAVE_TRANSLATION,
     MSG_EMPTY_INSTRUCTION,
+    MSG_EXPORT_FAILED,
     MSG_UNSAVED_TRANSLATION,
+    SAVE_FILETYPES,
     STATUS_OLLAMA_UNAVAILABLE,
     STATUS_SOURCE_LIMIT_EXCEEDED,
     STATUS_TRANSLATION_CANCELLED,
     STATUS_TRANSLATION_INCOMPLETE,
     TITLE_EMPTY_INSTRUCTION,
+    TITLE_EXPORT_FAILED,
     TITLE_UNSAVED_TRANSLATION,
     base_prompt_for_direction,
     translation_label_for_direction,
@@ -56,6 +61,15 @@ def _is_paste_key(event: tkinter.Event) -> bool:
     return _event_keycode(event) == _VK_V or _event_keysym(event) in _PASTE_KEYSYMS
 
 
+def _export_format_of(path: Path) -> ExportFormat | None:
+    suffix = path.suffix.lower()
+    if suffix in (".txt", ""):
+        return "txt"
+    if suffix == ".docx":
+        return "docx"
+    return None
+
+
 class TranslateTextWindow(ctk.CTk):
     def __init__(self) -> None:
         super().__init__()
@@ -86,6 +100,11 @@ class TranslateTextWindow(ctk.CTk):
             ollama=OllamaGateway(),
             on_event=self._on_queue_event,
             on_source_limit_exceeded=self._on_source_limit_exceeded,
+        )
+        self._export_bridge = ExportBridge(
+            host=self,
+            on_success=self._on_export_success,
+            on_error=self._on_export_error,
         )
         self._bind_model_refresh_triggers()
         self._request_models_refresh()
@@ -602,9 +621,44 @@ class TranslateTextWindow(ctk.CTk):
         self._translation_saved = True
 
     def _on_save_translation(self) -> None:
-        if len(self._text_of(self.translation)) == 0:
+        text = self._text_of(self.translation)
+        if len(text) == 0:
             return
-        self._translation_saved = True
+        chosen = filedialog.asksaveasfilename(
+            parent=self,
+            title=LABEL_SAVE_TRANSLATION,
+            defaultextension=".txt",
+            filetypes=list(SAVE_FILETYPES),
+            confirmoverwrite=True,
+        )
+        if not chosen:
+            return
+        path = Path(chosen)
+        export_format = _export_format_of(path)
+        if export_format is None:
+            messagebox.showerror(
+                TITLE_EXPORT_FAILED,
+                MSG_EXPORT_FAILED,
+                parent=self,
+            )
+            return
+        self._export_bridge.start(
+            translation_text=text,
+            path=str(path),
+            export_format=export_format,
+        )
+
+    def _on_export_success(self, _request_id: int, exported_text: str) -> None:
+        if self._text_of(self.translation) == exported_text:
+            self._translation_saved = True
+
+    def _on_export_error(self, _request_id: int) -> None:
+        messagebox.showerror(
+            TITLE_EXPORT_FAILED,
+            MSG_EXPORT_FAILED,
+            parent=self,
+        )
+        self._refresh_action_states()
 
     def _on_translate(self) -> None:
         if self._translation_in_progress():
@@ -749,6 +803,9 @@ class TranslateTextWindow(ctk.CTk):
         models = getattr(self, "_models_bridge", None)
         if models is not None:
             models.close()
+        export = getattr(self, "_export_bridge", None)
+        if export is not None:
+            export.close()
         super().destroy()
 
     def run(self) -> None:

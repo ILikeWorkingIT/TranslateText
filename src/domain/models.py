@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
+ExportFormat = Literal["txt", "docx"]
+
 PREFERRED_MODEL = "qwen2.5:3b"
 
 
@@ -52,6 +54,14 @@ class StartTranslationCommand:
     translation_text: str = ""
     translation_saved: bool = True
     unsaved_confirmed: bool = False
+
+
+@dataclass(frozen=True)
+class ExportTranslationCommand:
+    request_id: int
+    translation_text: str
+    path: str
+    export_format: ExportFormat
 
 
 @dataclass(frozen=True)
