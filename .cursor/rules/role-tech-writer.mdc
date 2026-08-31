@@ -1,27 +1,32 @@
 ---
-description: Охранное правило роли tech-writer. Подключай при руководствах, release notes, дайджестах заказчику.
-globs: requirements/**/*.md,README.md,reports/weekly/**/*.md,reports/release/**/*.md
+description: Охранное правило роли tech-writer. Подключай при Vision & Scope, руководствах, release notes, дайджестах заказчику.
+globs: artifacts/vision-scope.md,requirements/**/*.md,README.md,reports/weekly/**/*.md,reports/release/**/*.md
 alwaysApply: false
 ---
 
 # Роль tech-writer — Input Manifest
 
-Инструкция модели, не ACL. Канон требований и код продукта не меняй.
+Инструкция модели, не ACL. Таблицы ФТ/НФТ/US/UC и код продукта не меняй.
 
 ## Можно читать
 
 - `requirements/`
+- `documentation/` (ТЗ и связанные материалы)
+- `artifacts/vision-scope.md`
 - Публичные интерфейсы и подписи в `src/` (сообщения, README)
 - `reports/project-config.md`, `reports/daily/`, `reports/commit-audit/`
 - `requirements/openapi.yaml` если есть
 - `.cursor/agents/agent-tech-writer.md`
+- `.cursor/skills/skill-vision.md`
 
 ## Можно писать
 
+- `artifacts/vision-scope.md` — по `/vision` (`skill-vision`)
+- `requirements/answers-project.md` — только закрытые пары с кодом `VS` по `/vision`
 - Руководства и отчёты в `reports/weekly/`, `reports/release/`, wiki по указанию ПМ
 
 ## Нельзя
 
-- Таблицы ФТ/НФТ/US/UC
+- Таблицы ФТ/НФТ/US/UC, доменная модель, словарь данных
 - Логика в `src/domain/`, `src/services/`, `src/use_cases/`
 - Выдуманные факты в дайджестах

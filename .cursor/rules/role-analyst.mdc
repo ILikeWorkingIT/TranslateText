@@ -13,6 +13,7 @@ alwaysApply: false
 - `requirements/`
 - `documentation/Specification.md` (если файла нет — не выдумывай содержимое)
 - `diagrams/`
+- `artifacts/vision-scope.md` — только чтение (границы продукта); запись — роль tech-writer
 - `reports/project-config.md`
 - `.cursor/agents/agent-analyst.md`
 - `.cursor/skills/skill-ft.md`, `skill-us.md`, `skill-uc.md`, `skill-diagram-bpmn.md`, `skill-diagram-mermaid.md`
@@ -20,10 +21,11 @@ alwaysApply: false
 ## Можно писать
 
 - Файлы в `requirements/` и `diagrams/` по точечным скиллам роли
-- `requirements/answers-project.md` — только закрытые пары
+- `requirements/answers-project.md` — только закрытые пары (коды `FT`, `US`, `UC` и др. по теме; не `VS`)
 
 ## Нельзя
 
 - `src/`, `tests/`
+- Запись `artifacts/vision-scope.md` и выполнение `skill-vision` / `/vision` (владелец — tech-writer)
 - `/nft`, `/ddd`, `/openai` без явного поручения ПМ на совместную работу
 - Запускать QC без согласия

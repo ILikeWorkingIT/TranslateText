@@ -70,7 +70,7 @@
 | `diagrams` | текстовые диаграммы (PlantUML / Mermaid / BPMN); есть Mermaid | есть | да (текст) | да (текст; картинки и бинарники — нет) |
 | `.cursor/skills` | промпты и инструкции для AI | есть | да | да |
 | `.cursor/rules` | правила для AI | есть | да | да |
-| `.cursor/commands` | команды Cursor (полный список — `.cursor/list-commands.md`: `/pm`, `/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/qc-ddd`, `/qc-stage`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
+| `.cursor/commands` | команды Cursor (полный список — `.cursor/list-commands.md`: `/pm`, `/vision`, `/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/qc-ddd`, `/qc-stage`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
 | `.cursor/agents` | девять Custom Agents MAS (`agent-pm` … `agent-tester`) | есть | да | да |
 | `src` | исходный код MVP: окно customtkinter (`run-ui.bat`, `build-exe.bat`, `app.py`, `ui/`) и прикладной слой (`domain/`, `services/`, `use_cases/` по `/app-layer`) | есть | да | да |
 | `reports` | есть `checklist.md`, `instruction.md`, `nft-001-measurement.md`, `agent-memory.md`, `incompatibility-ft-nft.md`, `incompatibility-us-uc.md`, `domain-model-review.md`, MAS-отчёты; `test-run.md` — по прогону `/use-tests` | частично | да | да |

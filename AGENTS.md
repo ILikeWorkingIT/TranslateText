@@ -120,6 +120,7 @@ Use Cases (Cockburn) этого проекта — через `/uc` (скилл 
 `.cursor/rules/rule-answers-project.mdc`. В «Источнике» требований — `Axxxx`, не «решение заказчика».
 `Axxxx` важнее предварительного ТЗ при конфликте; не путать с `MR-01`…`MR-12` (правила измерения НФТ в файле НФТ).
 Детали согласования ФТ/НФТ/QC — в скиллах `/ft`, `/nft`, `/qc-ft-nft`.
+Детали Vision & Scope — в скилле `/vision` (`skill-vision`, владелец `tech-writer`): `artifacts/vision-scope.md`.
 Детали User Stories — в скилле `/us` (`skill-us`); Use Cases — в скилле `/uc` (`skill-uc`); контроль качества US/UC — `/qc-us-uc` (`skill-quality-control-us-uc`).
 BPMN для bpmn.io — `/diagram-bpmn` (`skill-diagram-bpmn`): файлы `diagrams/bpmn-NNN.bpmn`.
 Mermaid — `/diagram-mermaid` (`skill-diagram-mermaid`): flowchart, DFD, classDiagram, sequenceDiagram, C4; файлы `diagrams/diagram-mermaid-NNN.md` (пояснения перед диаграммой). Sequence: до кода Mermaid обязателен прогон anti-pattern guardrails §4.6 скилла.

@@ -59,7 +59,7 @@
 
 2. **System Analyst (`agent-analyst`)**
    
-   - *Функционал:* Разработка глоссария, ФТ, User Stories, Use Cases, генерация диаграмм процессов (BPMN, Mermaid), ведение аналитических протоколов встреч (`/meeting-outcomes`).
+   - *Функционал:* Разработка глоссария, ФТ, User Stories, Use Cases, генерация диаграмм процессов (BPMN, Mermaid), ведение аналитических протоколов встреч (`/meeting-outcomes`). Vision & Scope не пишет (это tech-writer).
    - *Манифест:* `requirements/`, `documentation/Specification.md`, `diagrams/`.
 
 3. **Software Architect (`agent-architect`)**
@@ -69,8 +69,8 @@
 
 4. **Technical Writer (`agent-tech-writer`)**
    
-   - *Функционал:* Создание internal wiki, пользовательских руководств, API Reference на основе схемы OpenAPI, оформление отчетов заказчику (`weekly-digest-customer-report`).
-   - *Манифест:* `requirements/`, публичные интерфейсы `src/`.
+   - *Функционал:* Vision & Scope (`/vision`, скилл `skill-vision` → `artifacts/vision-scope.md`); internal wiki, пользовательские руководства, API Reference на основе схемы OpenAPI, оформление отчетов заказчику (`weekly-digest-customer-report`).
+   - *Манифест:* `requirements/`, `documentation/`, `artifacts/vision-scope.md`, публичные интерфейсы `src/`.
 
 5. **Anatomist / Universal Critic (`agent-anatomist`)**
    

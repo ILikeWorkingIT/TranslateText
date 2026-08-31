@@ -42,6 +42,7 @@
 
 | Артефакт | Владелец | Исполнительная команда |
 | --- | --- | --- |
+| Vision & Scope | tech-writer | `/vision` |
 | ФТ | analyst | `/ft` |
 | НФТ | architect | `/nft` (скилл `skill-nft` не переписывать) |
 | US / UC / глоссарий / BPMN / Mermaid | analyst | `/us`, `/uc`, `/diagram-bpmn`, `/diagram-mermaid` |

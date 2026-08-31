@@ -2,7 +2,7 @@
 name: skill-agent-analyst
 description: >-
   Router for the analyst agent. Opens existing /ft /us /uc /diagram-* skills.
-  Does not duplicate their algorithms.
+  Does not open /vision (tech-writer). Does not duplicate their algorithms.
 disable-model-invocation: true
 owner: analyst
 ---
@@ -19,4 +19,4 @@ owner: analyst
 | BPMN | `/diagram-bpmn` | `.cursor/skills/skill-diagram-bpmn.md` |
 | Mermaid | `/diagram-mermaid` | `.cursor/skills/skill-diagram-mermaid.md` |
 
-НФТ и DDD — не эта роль. После написания предложи точечный QC, не запускай его без согласия.
+НФТ и DDD — не эта роль. Vision & Scope — `/vision` (роль `tech-writer`, `skill-vision`). После написания предложи точечный QC, не запускай его без согласия.

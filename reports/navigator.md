@@ -13,6 +13,7 @@
 | Что нужно | Куда |
 | --- | --- |
 | Стек и интеграции | `reports/project-config.md` |
+| Vision & Scope | `artifacts/vision-scope.md` (команда `/vision`, роль tech-writer) |
 | Текущий этап, гейт, APPROVED | `reports/pm-state.md` |
 | След требований → код / коммиты | `reports/traceability.md` |
 | Снимок GitHub-бэклога | `reports/backlog-state.md` |
