@@ -45,8 +45,10 @@
 - `documentation/Specification.md` — предварительное ТЗ (UI, разбиение на фрагменты, прогресс, Ollama, форматы файлов).
 - `documentation/other-description.md` — среда Ollama на этой машине (адрес, Docker, модель, CPU/GPU).
 - `documentation/project-structure-v1-1.md` — структура папок и правила именования (синхронизируется с `.cursor/rules/rule-structure.mdc`).
+- `artifacts/vision-scope.md` — Vision & Scope (команда `/vision`, скилл `skill-vision`).
+- `artifacts/tz-gost-34-602.md` — техническое задание по ГОСТ 34.602-89 (команда `/gost-3460289`, скилл `skill-gost-3460289`).
 
-**Иерархия источников:** предварительное ТЗ — в `documentation/`; уточнения — в `requirements/answers-project.md` (`Axxxx`) и согласованных пакетах ФТ (`A0125`), НФТ (`A0127`), US (`A0132`), UC (`A0126`), доменной модели (`A0138`) и словаря данных (`A0139`); поздние уточнения — `A0142`–`A0176` и далее. При конфликте с предварительным ТЗ приоритет у `Axxxx` и согласованных требований. Поведение агента — в `AGENTS.md`; память проекта — в `reports/agent-memory.md` (команда «запомни» / `/pin-memory`). Порядок срезов MVP — `reports/checklist.md`.
+**Иерархия источников:** предварительное ТЗ — в `documentation/`; уточнения — в `requirements/answers-project.md` (`Axxxx`) и согласованных пакетах ФТ (`A0125`), НФТ (`A0127`), US (`A0132`), UC (`A0126`), доменной модели (`A0138`) и словаря данных (`A0139`); поздние уточнения — `A0142`–`A0176` и далее. Артефакты для заказчика: Vision & Scope — `artifacts/vision-scope.md` (`/vision`); ТЗ по ГОСТ — `artifacts/tz-gost-34-602.md` (`/gost-3460289`); порядок DOC-01/DOC-02 — `reports/checklist.md`. При конфликте с предварительным ТЗ приоритет у `Axxxx` и согласованных требований. Поведение агента — в `AGENTS.md`; память проекта — в `reports/agent-memory.md` (команда «запомни» / `/pin-memory`). Порядок срезов MVP — `reports/checklist.md`.
 
 ## Что должно уметь приложение (по ТЗ и `Axxxx`)
 
@@ -70,11 +72,11 @@
 | `diagrams` | текстовые диаграммы (PlantUML / Mermaid / BPMN); есть Mermaid | есть | да (текст) | да (текст; картинки и бинарники — нет) |
 | `.cursor/skills` | промпты и инструкции для AI | есть | да | да |
 | `.cursor/rules` | правила для AI | есть | да | да |
-| `.cursor/commands` | команды Cursor (полный список — `.cursor/list-commands.md`: `/pm`, `/vision`, `/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/qc-ddd`, `/qc-stage`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
+| `.cursor/commands` | команды Cursor (полный список — `.cursor/list-commands.md`: `/pm`, `/vision`, `/gost-3460289`, `/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/qc-ddd`, `/qc-stage`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
 | `.cursor/agents` | девять Custom Agents MAS (`agent-pm` … `agent-tester`) | есть | да | да |
 | `src` | исходный код MVP: окно customtkinter (`run-ui.bat`, `build-exe.bat`, `app.py`, `ui/`) и прикладной слой (`domain/`, `services/`, `use_cases/` по `/app-layer`) | есть | да | да |
 | `reports` | есть `checklist.md`, `instruction.md`, `nft-001-measurement.md`, `agent-memory.md`, `incompatibility-ft-nft.md`, `incompatibility-us-uc.md`, `domain-model-review.md`, MAS-отчёты; `test-run.md` — по прогону `/use-tests` | частично | да | да |
-| `artifacts` | вне `requirements`; готовый `TranslateText.exe` (сборка `src/build-exe.bat`, в git не кладётся) | есть (exe локально) | exe — нет | да (папка) |
+| `artifacts` | вне `requirements`; `vision-scope.md`, `tz-gost-34-602.md`; готовый `TranslateText.exe` (сборка `src/build-exe.bat`, в git не кладётся) | есть (exe локально) | exe — нет | да (папка) |
 | `tests` | автотесты pytest (desktop/customtkinter), карта `tests/coverage.md` | есть | да | да |
 | `test-data` | зарезервирована; только по прямому заданию разработчика | целевая | да | да |
 | `legacy` | исходники и аналитика другого проекта; только по прямому заданию | — | нет | нет |

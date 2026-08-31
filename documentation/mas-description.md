@@ -69,8 +69,8 @@
 
 4. **Technical Writer (`agent-tech-writer`)**
    
-   - *Функционал:* Vision & Scope (`/vision`, скилл `skill-vision` → `artifacts/vision-scope.md`); internal wiki, пользовательские руководства, API Reference на основе схемы OpenAPI, оформление отчетов заказчику (`weekly-digest-customer-report`).
-   - *Манифест:* `requirements/`, `documentation/`, `artifacts/vision-scope.md`, публичные интерфейсы `src/`.
+   - *Функционал:* Vision & Scope (`/vision`, скилл `skill-vision` → `artifacts/vision-scope.md`); ТЗ по ГОСТ 34.602-89 (`/gost-3460289`, скилл `skill-gost-3460289` → `artifacts/tz-gost-*.md`); internal wiki, пользовательские руководства, API Reference на основе схемы OpenAPI, оформление отчетов заказчику (`weekly-digest-customer-report`).
+   - *Манифест:* `requirements/`, `documentation/`, `artifacts/vision-scope.md`, `artifacts/tz-gost-*.md`, публичные интерфейсы `src/`.
 
 5. **Anatomist / Universal Critic (`agent-anatomist`)**
    
@@ -114,6 +114,7 @@
 **5.1. Этапы документации и проектирования (при необходимости PM может менять этапы):**
 
 - `/pm` (PM) -> Инициализация `reports/project-config.md` и `reports/pm-state.md`.
+- `/vision` (Tech-Writer) -> Vision & Scope (`artifacts/vision-scope.md`).
 - `/glossary` (Analyst) -> Наполнение глоссария (`requirements/glossary.md`).
 - `/ft` (Analyst) -> Функциональные требования (`requirements/functional-requirements.md`).
 - `/nft` (Architect / Analyst по выбору в config) -> Нефункциональные требования (`requirements/non-functional-requirements.md`).
@@ -124,6 +125,7 @@
 - `/ddd` (Architect) -> Доменная модель (`requirements/domain-model.md`).
 - `/qc-ddd` (Anatomist) -> Проверка доменной модели  (`reports/domain-model-review.md`).
 - `/data-dictionary` (Analyst / Architect) -> Словарь данных (`requirements/data-dictionary.md`).
+- `/gost-3460289` (Tech-Writer) -> Техническое задание по ГОСТ 34.602-89 (`artifacts/tz-gost-<код>.md`; в этом репозитории — `artifacts/tz-gost-34-602.md`).
 - `/diagram-bpmn` (Analyst) -> Диаграммы процессов BPMN. Выполняется при необходимости
 - `/diagram-mermaid` (Analyst) -> Диаграммы Mermaid. Выполняется при необходимости
 - `/release-notes` (Tech-Writer) -> Подготовка релиз-ноутс (`reports/release/`).

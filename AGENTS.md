@@ -120,7 +120,8 @@ Use Cases (Cockburn) этого проекта — через `/uc` (скилл 
 `.cursor/rules/rule-answers-project.mdc`. В «Источнике» требований — `Axxxx`, не «решение заказчика».
 `Axxxx` важнее предварительного ТЗ при конфликте; не путать с `MR-01`…`MR-12` (правила измерения НФТ в файле НФТ).
 Детали согласования ФТ/НФТ/QC — в скиллах `/ft`, `/nft`, `/qc-ft-nft`.
-Детали Vision & Scope — в скилле `/vision` (`skill-vision`, владелец `tech-writer`): `artifacts/vision-scope.md`.
+Детали Vision & Scope — в скилле `/vision` (`skill-vision`, владелец `tech-writer`): `artifacts/vision-scope.md`; режимы «ранний» / «после пакета», правка, перенос ответов (код `VS` в `answers-project.md`). Согласование: «согласую Vision» / «принимаю Vision & Scope» — не путать с утверждением этапа MAS.
+Техническое задание по ГОСТ 34.602-89 — `/gost-3460289` (`skill-gost-3460289`, владелец `tech-writer`): по умолчанию `artifacts/tz-gost-<код>.md`; режимы создание / реструктуризация / стилизация / аудит / перенос ответов (код `TZ` в `answers-project.md`). Согласование: «согласую ТЗ» / «принимаю техническое задание» — не путать с утверждением этапа MAS.
 Детали User Stories — в скилле `/us` (`skill-us`); Use Cases — в скилле `/uc` (`skill-uc`); контроль качества US/UC — `/qc-us-uc` (`skill-quality-control-us-uc`).
 BPMN для bpmn.io — `/diagram-bpmn` (`skill-diagram-bpmn`): файлы `diagrams/bpmn-NNN.bpmn`.
 Mermaid — `/diagram-mermaid` (`skill-diagram-mermaid`): flowchart, DFD, classDiagram, sequenceDiagram, C4; файлы `diagrams/diagram-mermaid-NNN.md` (пояснения перед диаграммой). Sequence: до кода Mermaid обязателен прогон anti-pattern guardrails §4.6 скилла.
