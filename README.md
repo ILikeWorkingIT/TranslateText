@@ -1,5 +1,7 @@
 # TranslateText
 
+**Версия: MVP 1.0** (`v1.0.0`) — релиз 2026-08-31. Примечания к релизу: [`reports/release/release-v1.0.md`](reports/release/release-v1.0.md). Установка на другом ПК: [`reports/instruction.md`](reports/instruction.md).
+
 Локальное минималистичное десктоп-приложение на Python для перевода больших объёмов текста, книг и документов **между английским и русским** (направления EN→RU и RU→EN). Перевод бесплатный: движок — локальный Ollama, семейство моделей Qwen2.5.
 
 Стек MVP: Python, окно на **customtkinter**, локальный HTTP API Ollama. Своего серверного бэкенда в ТЗ нет. Gradio и Streamlit названы в предварительном ТЗ; для окна приложения **не используются** (`A0173`).
@@ -75,7 +77,7 @@
 | `.cursor/commands` | команды Cursor (полный список — `.cursor/list-commands.md`: `/pm`, `/vision`, `/gost-3460289`, `/ft`, `/nft`, `/us`, `/uc`, `/qc-ft-nft`, `/qc-us-uc`, `/qc-ddd`, `/qc-stage`, `/diagram-bpmn`, `/diagram-mermaid`, `/ddd`, `/data-dictionary`, `/ui-prototyping`, `/frontend`, `/app-layer`, `/openai`, `/new-tests`, `/use-tests`, `/pin-memory`) | есть | да | да |
 | `.cursor/agents` | девять Custom Agents MAS (`agent-pm` … `agent-tester`) | есть | да | да |
 | `src` | исходный код MVP: окно customtkinter (`run-ui.bat`, `build-exe.bat`, `app.py`, `ui/`) и прикладной слой (`domain/`, `services/`, `use_cases/` по `/app-layer`) | есть | да | да |
-| `reports` | есть `checklist.md`, `instruction.md`, `nft-001-measurement.md`, `agent-memory.md`, `incompatibility-ft-nft.md`, `incompatibility-us-uc.md`, `domain-model-review.md`, MAS-отчёты; `test-run.md` — по прогону `/use-tests` | частично | да | да |
+| `reports` | есть `checklist.md`, `instruction.md`, `release/release-v1.0.md`, `nft-001-measurement.md`, `agent-memory.md`, `incompatibility-ft-nft.md`, `incompatibility-us-uc.md`, `domain-model-review.md`, MAS-отчёты; `test-run.md` — по прогону `/use-tests` | частично | да | да |
 | `artifacts` | вне `requirements`; `vision-scope.md`, `tz-gost-34-602.md`; готовый `TranslateText.exe` (сборка `src/build-exe.bat`, в git не кладётся) | есть (exe локально) | exe — нет | да (папка) |
 | `tests` | автотесты pytest (desktop/customtkinter), карта `tests/coverage.md` | есть | да | да |
 | `test-data` | зарезервирована; только по прямому заданию разработчика | целевая | да | да |
