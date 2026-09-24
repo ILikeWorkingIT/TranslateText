@@ -6,7 +6,7 @@ from typing import Literal, Protocol
 ExportFormat = Literal["txt", "docx"]
 SourceFormat = Literal["txt", "md", "docx", "pdf"]
 
-PREFERRED_MODEL = "qwen2.5:3b"
+PREFERRED_MODEL = "qwen2.5:7b"
 
 
 MAX_SOURCE_CHARS = 100_000

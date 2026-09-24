@@ -28,7 +28,7 @@ from ui_helpers import (
     trigger_model_click,
 )
 
-PREFERRED_MODEL = "qwen2.5:3b"
+PREFERRED_MODEL = "qwen2.5:7b"
 OTHER_MODEL = "llama3.2"
 
 

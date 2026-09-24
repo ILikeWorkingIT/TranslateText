@@ -14,6 +14,7 @@ from services.ollama_gateway import (
     OLLAMA_BASE_URL,
     OLLAMA_NUM_PREDICT,
     OLLAMA_TEMPERATURE,
+    OLLAMA_TIMEOUT_SECONDS,
     OllamaGateway,
 )
 
@@ -22,7 +23,7 @@ def _client(handler: httpx.MockTransport) -> httpx.Client:
     return httpx.Client(
         transport=handler,
         base_url=OLLAMA_BASE_URL,
-        timeout=60.0,
+        timeout=OLLAMA_TIMEOUT_SECONDS,
         follow_redirects=False,
     )
 
@@ -242,7 +243,7 @@ def test_should_add_english_example_when_direction_is_ru_en() -> None:
     assert text == "I love this world"
 
 
-def test_should_raise_timeout_when_chat_exceeds_60_seconds() -> None:
+def test_should_raise_timeout_when_chat_exceeds_120_seconds() -> None:
     """FT-028, A0031: тишина / ReadTimeout — OllamaTimeoutError."""
 
     def handler(_request: httpx.Request) -> httpx.Response:

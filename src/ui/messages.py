@@ -35,7 +35,7 @@ STATUS_SOURCE_LIMIT_EXCEEDED = (
     "Превышен максимальный объём исходного текста (100 000 символов)."
 )
 STATUS_TRANSLATION_INCOMPLETE = (
-    "Перевод не завершён: нет ответа Ollama в течение 60 с или ошибка модели."
+    "Перевод не завершён: нет ответа Ollama в течение 120 с или ошибка модели."
 )
 STATUS_TRANSLATION_CANCELLED = (
     "Перевод не завершён: отменён Пользователем."
@@ -78,7 +78,7 @@ BASE_PROMPT_RU_EN = (
 )
 
 SAMPLE_MODELS = ["qwen2.5:3b", "qwen2.5:7b", "llama3.2"]
-SAMPLE_MODEL = "qwen2.5:3b"
+SAMPLE_MODEL = "qwen2.5:7b"
 
 SAMPLE_ORIGINAL = (
     "The application translates large volumes of text, books and documents "

@@ -34,7 +34,7 @@
 | Система | Адрес / заметка | Источник |
 | --- | --- | --- |
 | Ollama | `http://127.0.0.1:11434`, `POST /api/chat`, контейнер `ollama_local` | `documentation/other-description.md`; `A0008`, `A0023`, `A0024`, `A0028` |
-| Модель-пример | `qwen2.5:3b` | `other-description.md` |
+| Модель-пример | `qwen2.5:7b` (умолчание, A0178); `qwen2.5:3b` остаётся в списке, если установлена | `A0178` |
 
 Параметры пайплайна Stable Diffusion из `other-description.md` в стек TranslateText не входят.
 

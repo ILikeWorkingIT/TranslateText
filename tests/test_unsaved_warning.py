@@ -26,7 +26,7 @@ from ui_helpers import (
 )
 
 
-PREFERRED_MODEL = "qwen2.5:3b"
+PREFERRED_MODEL = "qwen2.5:7b"
 
 
 def _fill_original(window, text: str) -> None:

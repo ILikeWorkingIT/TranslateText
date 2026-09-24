@@ -12,6 +12,7 @@ from domain.models import QueueEvent, StartTranslationCommand
 from services.ollama_gateway import (
     OLLAMA_BASE_URL,
     OLLAMA_NUM_PREDICT,
+    OLLAMA_TIMEOUT_SECONDS,
     OllamaGateway,
 )
 from services.split_text import SplitText
@@ -71,7 +72,7 @@ def _client(handler: httpx.MockTransport) -> httpx.Client:
     return httpx.Client(
         transport=handler,
         base_url=OLLAMA_BASE_URL,
-        timeout=60.0,
+        timeout=OLLAMA_TIMEOUT_SECONDS,
         follow_redirects=False,
     )
 

@@ -20,7 +20,7 @@ from ui_helpers import (
     pump_until,
 )
 
-DEFAULT_FAKE_MODELS = ("llama3.2", "qwen2.5:3b")
+DEFAULT_FAKE_MODELS = ("llama3.2", "qwen2.5:3b", "qwen2.5:7b")
 
 
 class RecordingOllama:

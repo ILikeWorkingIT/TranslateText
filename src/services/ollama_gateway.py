@@ -11,7 +11,7 @@ from domain.errors import (
 )
 
 OLLAMA_BASE_URL = "http://127.0.0.1:11434"
-OLLAMA_TIMEOUT_SECONDS = 60.0
+OLLAMA_TIMEOUT_SECONDS = 120.0
 # Умолчание Ollama — 128 токенов ответа; фрагмент 500–700 символов в него не влезает.
 OLLAMA_NUM_PREDICT = -1
 OLLAMA_TEMPERATURE = 0.0

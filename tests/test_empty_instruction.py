@@ -24,7 +24,7 @@ from ui_helpers import (
     textbox_content,
 )
 
-PREFERRED_MODEL = "qwen2.5:3b"
+PREFERRED_MODEL = "qwen2.5:7b"
 
 
 def _fill_original(window, text: str) -> None:

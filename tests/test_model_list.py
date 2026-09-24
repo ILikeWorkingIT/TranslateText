@@ -12,18 +12,18 @@ from ui_helpers import (
 
 
 def test_should_select_qwen_when_window_opens_and_preferred_is_available(window):
-    """FT-041, A0045, happy: при старте выбрана qwen2.5:3b, если она есть в ответе."""
-    assert window.model.get() == "qwen2.5:3b", (
-        "при старте в списке Модель выбрана qwen2.5:3b, если она есть в ответе API"
+    """FT-041, A0178, happy: при старте выбрана qwen2.5:7b, если она есть в ответе."""
+    assert window.model.get() == "qwen2.5:7b", (
+        "при старте в списке Модель выбрана qwen2.5:7b, если она есть в ответе API"
     )
 
 
 def test_should_select_first_model_when_window_opens_without_qwen(open_window):
-    """FT-041, A0045, edge: нет qwen2.5:3b — выбрана первая модель ответа."""
-    names = ("mistral", "llama3.2")
+    """FT-041, A0178, edge: нет qwen2.5:7b — выбрана первая модель ответа."""
+    names = ("mistral", "qwen2.5:3b")
     app, _port = open_window(names)
     assert app.model.get() == "mistral", (
-        "при старте без qwen2.5:3b в списке Модель выбрана первая модель ответа API"
+        "при старте без qwen2.5:7b в списке Модель выбрана первая модель ответа API"
     )
 
 
@@ -76,19 +76,19 @@ def test_should_keep_selected_model_when_it_remains_in_new_response(open_window)
 def test_should_keep_user_pick_when_refresh_started_with_old_model(open_window):
     """FT-045, A0053, edge: выбор во время опроса не затирается ответом со старым current."""
     app, port = open_window(("qwen2.5:3b", "qwen2.5:7b"))
-    assert app.model.get() == "qwen2.5:3b"
+    assert app.model.get() == "qwen2.5:7b"
     hold = threading.Event()
     port.list_hold = hold
     trigger_model_click(app)
     pump_until(app, lambda: port.list_calls >= 2)
-    app.model.set("qwen2.5:7b")
+    app.model.set("qwen2.5:3b")
     app.update_idletasks()
     hold.set()
     for _ in range(40):
         app.update()
-    assert app.model.get() == "qwen2.5:7b", (
+    assert app.model.get() == "qwen2.5:3b", (
         "если Пользователь сменил модель, пока шёл опрос после клика, "
-        "ответ опроса не возвращает прежнюю qwen2.5:3b"
+        "ответ опроса не возвращает прежнюю qwen2.5:7b"
     )
 
 
@@ -97,10 +97,10 @@ def test_should_select_default_when_current_model_missing_after_refresh(open_win
     app, port = open_window(("llama3.2", "mistral"))
     app.model.set("mistral")
     app.update_idletasks()
-    port.names = ("qwen2.5:3b", "phi3")
+    port.names = ("qwen2.5:3b", "qwen2.5:7b", "phi3")
     trigger_model_click(app)
-    pump_until(app, lambda: combo_values(app.model) == ("qwen2.5:3b", "phi3"))
-    assert app.model.get() == "qwen2.5:3b", (
+    pump_until(app, lambda: combo_values(app.model) == ("qwen2.5:3b", "qwen2.5:7b", "phi3"))
+    assert app.model.get() == "qwen2.5:7b", (
         "если прежнего выбора нет в новом ответе, в списке снова правило умолчания FT-041"
     )
 
