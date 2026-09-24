@@ -39,3 +39,15 @@ class QueueBusyError(AppLayerError):
 
 class ExportWriteError(AppLayerError):
     """Сбой записи файла при «Сохранить перевод»."""
+
+
+class CloudKeyMissingError(AppLayerError):
+    """Ключ облачного канала не задан (FT-060)."""
+
+
+class CloudRateLimitError(AppLayerError):
+    """Облачный канал отказал из‑за лимита запросов в минуту (FT-060)."""
+
+
+class CloudTranslationError(AppLayerError):
+    """Облачный канал не вернул перевод."""

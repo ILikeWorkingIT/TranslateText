@@ -14,7 +14,9 @@ OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 OLLAMA_TIMEOUT_SECONDS = 120.0
 # Умолчание Ollama — 128 токенов ответа; фрагмент 500–700 символов в него не влезает.
 OLLAMA_NUM_PREDICT = -1
-OLLAMA_TEMPERATURE = 0.0
+OLLAMA_TEMPERATURE = 0.1
+OLLAMA_TOP_P = 0.9
+OLLAMA_REPEAT_PENALTY = 1.1
 
 _USER_TAIL = (
     "\n\nКонец исходника. Переведи весь текст целиком, начиная с первого "
@@ -32,6 +34,16 @@ _LEAK_MARKERS = (
 )
 _DIRECTION_EN_RU = "EN→RU"
 _DIRECTION_RU_EN = "RU→EN"
+_LANGUAGE_LOCK = {
+    _DIRECTION_EN_RU: (
+        " Язык ответа — только русский, кириллица. "
+        "Не пиши по-китайски и не вставляй иероглифы, "
+        "в том числе для слов processing, facility и intake."
+    ),
+    _DIRECTION_RU_EN: (
+        " Reply in English only. Do not write Chinese characters."
+    ),
+}
 # qwen2.5:3b на «this world» подмешивает 这个世界; один пример целевого языка снимает срыв.
 _FEW_SHOT = {
     _DIRECTION_EN_RU: ("I love this city", "Я люблю этот город"),
@@ -65,13 +77,32 @@ class OllamaGateway:
     def translate_fragment(
         self, *, model: str, instruction: str, source: str, direction: str = ""
     ) -> str:
+        messages = _chat_messages(instruction, source, direction)
+        cleaned = self._complete(model, messages)
+        if direction == _DIRECTION_EN_RU and _has_cjk(cleaned):
+            messages.append({"role": "assistant", "content": cleaned})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": (
+                        "В ответе есть китайские иероглифы. "
+                        "Повтори весь перевод только по-русски, кириллицей."
+                    ),
+                }
+            )
+            cleaned = self._complete(model, messages)
+        return cleaned
+
+    def _complete(self, model: str, messages: list[dict[str, str]]) -> str:
         payload = {
             "model": model,
-            "messages": _chat_messages(instruction, source, direction),
+            "messages": messages,
             "stream": False,
             "options": {
                 "num_predict": OLLAMA_NUM_PREDICT,
                 "temperature": OLLAMA_TEMPERATURE,
+                "top_p": OLLAMA_TOP_P,
+                "repeat_penalty": OLLAMA_REPEAT_PENALTY,
                 "stop": list(_LEAK_MARKERS),
             },
         }
@@ -114,7 +145,10 @@ def _chat_messages(
     instruction: str, source: str, direction: str
 ) -> list[dict[str, str]]:
     messages = [
-        {"role": "system", "content": f"{instruction}{_SYSTEM_GUARD}"},
+        {
+            "role": "system",
+            "content": f"{instruction}{_SYSTEM_GUARD}{_LANGUAGE_LOCK.get(direction, '')}",
+        },
     ]
     example = _FEW_SHOT.get(direction)
     if example is not None:
@@ -123,6 +157,10 @@ def _chat_messages(
         messages.append({"role": "assistant", "content": translated_example})
     messages.append({"role": "user", "content": f"{source}{_USER_TAIL}"})
     return messages
+
+
+def _has_cjk(text: str) -> bool:
+    return any("\u4e00" <= char <= "\u9fff" for char in text)
 
 
 def _strip_instruction_leak(text: str) -> str:

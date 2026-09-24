@@ -13,6 +13,7 @@ for path in (SRC, TESTS):
         sys.path.insert(0, str(path))
 
 from domain.errors import AppLayerError, OllamaUnavailableError
+from domain.models import CLOUD_MODELS
 from ui_helpers import (
     WorkerAfterMixin,
     combo_values,
@@ -21,6 +22,10 @@ from ui_helpers import (
 )
 
 DEFAULT_FAKE_MODELS = ("llama3.2", "qwen2.5:3b", "qwen2.5:7b")
+
+
+def with_cloud(names: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(names) + CLOUD_MODELS
 
 
 class RecordingOllama:
@@ -91,7 +96,8 @@ def open_window(monkeypatch):
         app.withdraw()
         app.update_idletasks()
         if names:
-            pump_until(app, lambda: combo_values(app.model) == names)
+            expected = with_cloud(names)
+            pump_until(app, lambda: combo_values(app.model) == expected)
         return app, port
 
     yield _open

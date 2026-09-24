@@ -1,6 +1,6 @@
 """S-03: недоступный Ollama — статус FT-024, блокировка, восстановление."""
 
-from conftest import DEFAULT_FAKE_MODELS
+from conftest import DEFAULT_FAKE_MODELS, with_cloud
 from ui.messages import (
     HINT_NO_TEXT,
     HINT_OLLAMA_DOWN,
@@ -64,7 +64,7 @@ def test_should_enable_translate_when_models_return_after_unavailable(open_windo
     app.update_idletasks()
     port.names = DEFAULT_FAKE_MODELS
     trigger_model_click(app)
-    pump_until(app, lambda: combo_values(app.model) == DEFAULT_FAKE_MODELS)
+    pump_until(app, lambda: combo_values(app.model) == with_cloud(DEFAULT_FAKE_MODELS))
     button = find_button(app, LABEL_TRANSLATE)
     assert button is not None, "есть кнопка Перевести"
     assert str(app.status.cget("text")) == "", (
@@ -89,9 +89,9 @@ def test_should_show_ollama_hint_when_original_empty_and_api_unavailable(open_wi
     button.event_generate("<Enter>")
     app.update_idletasks()
     visible = collected_texts(app)
-    assert any(HINT_OLLAMA_DOWN in text for text in visible), (
-        "у заблокированной Перевести видна подсказка Ollama не работает"
+    assert any(HINT_NO_TEXT in text for text in visible), (
+        "выбрана облачная модель, оригинал пуст — подсказка Нет текста для перевода"
     )
-    assert not any(HINT_NO_TEXT in text for text in visible), (
-        "при недоступной Ollama не показывается Нет текста для перевода"
+    assert not any(HINT_OLLAMA_DOWN in text for text in visible), (
+        "облачная модель не блокируется сообщением Ollama не работает"
     )

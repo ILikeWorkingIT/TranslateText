@@ -12,7 +12,7 @@ from ui.messages import (
     LABEL_TRANSLATION,
 )
 
-from conftest import DEFAULT_FAKE_MODELS
+from conftest import DEFAULT_FAKE_MODELS, with_cloud
 from ui_helpers import (
     combo_values,
     find_by_text,
@@ -70,7 +70,7 @@ def test_should_show_base_prompt_when_user_has_not_replaced_instruction(window):
 def test_should_show_model_list_when_window_opens(window):
     """FT-005, FT-045, happy: при старте список «Модель» совпадает с ответом API."""
     assert window.model is not None, "есть список Модель"
-    assert combo_values(window.model) == DEFAULT_FAKE_MODELS, (
+    assert combo_values(window.model) == with_cloud(DEFAULT_FAKE_MODELS), (
         "при старте список Модель показывает все имена ответа локального API"
     )
 

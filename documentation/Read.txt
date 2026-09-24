@@ -1,0 +1,34 @@
+После публикации релиз будет доступен по адресу:
+https://github.com/ILikeWorkingIT/TranslateText/releases/tag/v1.0.0
+
+Как прикрепить exe к GitHub Release
+Тег v1.0.0 уже в репозитории. Exe в git не лежит — его нужно загрузить вручную при создании или редактировании релиза.
+
+Через сайт GitHub (самый простой способ)
+Откройте страницу нового релиза:
+https://github.com/ILikeWorkingIT/TranslateText/releases/new?tag=v1.0.0
+
+Убедитесь, что выбран тег v1.0.0.
+
+Заполните:
+
+Release title: TranslateText MVP 1.0
+Description: текст из reports/release/release-v1.0.md
+Прокрутите вниз до блока Attach binaries by dropping them here or selecting your files
+(или Assets / «Перетащите файлы сюда»).
+
+Добавьте exe одним из способов:
+
+перетащите e:\Cursor\TranslateText\artifacts\TranslateText.exe в эту область;
+или нажмите selecting your files и выберите файл в проводнике.
+Дождитесь окончания загрузки (~33 МБ).
+
+Нажмите Publish release.
+
+После публикации на странице релиза появится ссылка на скачивание TranslateText.exe.
+
+Если релиз уже создан без exe
+https://github.com/ILikeWorkingIT/TranslateText/releases
+Откройте v1.0.0 > Edit (карандаш).
+Внизу снова блок для файлов — прикрепите TranslateText.exe.
+Update release

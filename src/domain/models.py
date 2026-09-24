@@ -7,6 +7,9 @@ ExportFormat = Literal["txt", "docx"]
 SourceFormat = Literal["txt", "md", "docx", "pdf"]
 
 PREFERRED_MODEL = "qwen2.5:7b"
+CLOUD_MODEL = "openai/gpt-oss-120b"
+CLOUD_MODELS = (CLOUD_MODEL,)
+DEFAULT_CLOUD_MODEL = CLOUD_MODEL
 
 
 MAX_SOURCE_CHARS = 100_000
@@ -42,6 +45,7 @@ class ModelsRefreshedEvent:
     request_id: int
     models: tuple[str, ...]
     selected_model: str
+    ollama_available: bool = True
 
 
 @dataclass(frozen=True)
@@ -81,3 +85,4 @@ class QueueEvent:
     total_source_chars: int
     translation_so_far: str
     incomplete_cause: Literal["none", "cancelled", "ollama"] = "none"
+    detail: str = ""

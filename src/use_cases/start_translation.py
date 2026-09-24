@@ -1,11 +1,20 @@
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
 from threading import Event
 from typing import Literal
 
-from domain.errors import AppLayerError, EmptyInstructionError, QueueBusyError
-from domain.models import Fragment, OllamaPort, QueueEvent, StartTranslationCommand
+from domain.errors import (
+    AppLayerError,
+    CloudKeyMissingError,
+    CloudRateLimitError,
+    CloudTranslationError,
+    EmptyInstructionError,
+    QueueBusyError,
+)
+from domain.models import CLOUD_MODELS, Fragment, OllamaPort, QueueEvent, StartTranslationCommand
+from services.gemini_gateway import CLOUD_REQUEST_GAP_SECONDS, translate_cloud
 from services.split_text import SplitText
 from use_cases.unsaved_translation import require_unsaved_confirmed
 
@@ -97,6 +106,10 @@ class StartTranslation:
         for index, fragment in enumerate(fragments):
             if stop_event.is_set():
                 return
+            if index > 0 and command.model in CLOUD_MODELS:
+                _wait_cloud_gap(stop_event, cancel_event)
+            if stop_event.is_set():
+                return
             if _is_cancelled(cancel_event):
                 on_event(
                     self._event(
@@ -111,17 +124,20 @@ class StartTranslation:
                 )
                 return
             try:
-                translated = self._ollama.translate_fragment(
-                    model=command.model,
-                    instruction=command.instruction,
-                    source=fragment.source,
-                    direction=command.direction,
-                )
-            except AppLayerError:
+                translated = _translate_fragment(self._ollama, command, fragment.source)
+            except AppLayerError as exc:
                 if stop_event.is_set():
                     return
                 cause: IncompleteCause = (
                     "cancelled" if _is_cancelled(cancel_event) else "ollama"
+                )
+                detail = (
+                    str(exc)
+                    if isinstance(
+                        exc,
+                        (CloudKeyMissingError, CloudRateLimitError, CloudTranslationError),
+                    )
+                    else ""
                 )
                 on_event(
                     self._event(
@@ -132,6 +148,7 @@ class StartTranslation:
                         translation="".join(translated_parts),
                         total=total,
                         incomplete_cause=cause,
+                        detail=detail,
                     )
                 )
                 return
@@ -187,6 +204,7 @@ class StartTranslation:
         translation: str,
         total: int,
         incomplete_cause: IncompleteCause = "none",
+        detail: str = "",
     ) -> QueueEvent:
         return QueueEvent(
             request_id=command.request_id,
@@ -196,4 +214,25 @@ class StartTranslation:
             total_source_chars=total,
             translation_so_far=translation,
             incomplete_cause=incomplete_cause,
+            detail=detail,
         )
+
+
+def _wait_cloud_gap(stop_event: Event, cancel_event: Event | None) -> None:
+    """Пауза 2 с между облачными запросами, чтобы не упираться в RPM."""
+    deadline = time.monotonic() + CLOUD_REQUEST_GAP_SECONDS
+    while time.monotonic() < deadline:
+        if stop_event.is_set() or _is_cancelled(cancel_event):
+            return
+        time.sleep(0.1)
+
+
+def _translate_fragment(ollama: OllamaPort, command: StartTranslationCommand, source: str) -> str:
+    if command.model in CLOUD_MODELS:
+        return translate_cloud(source, model=command.model)
+    return ollama.translate_fragment(
+        model=command.model,
+        instruction=command.instruction,
+        source=source,
+        direction=command.direction,
+    )

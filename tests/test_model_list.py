@@ -2,7 +2,7 @@
 
 import threading
 
-from conftest import DEFAULT_FAKE_MODELS
+from conftest import DEFAULT_FAKE_MODELS, with_cloud
 from ui_helpers import (
     combo_values,
     pump_until,
@@ -31,7 +31,7 @@ def test_should_show_all_api_names_when_list_includes_non_qwen(open_window):
     """FT-005, NFT-013, happy: в списке все имена ответа API, без фильтра."""
     names = ("custom-finetune:latest", "llama3.2", "qwen2.5:3b")
     app, _port = open_window(names)
-    assert combo_values(app.model) == names, (
+    assert combo_values(app.model) == with_cloud(names), (
         "список Модель показывает все имена ответа API без фильтра по имени"
     )
 
@@ -42,8 +42,8 @@ def test_should_update_model_list_when_user_clicks_model(open_window):
     updated = ("llama3.2", "qwen2.5:3b", "phi3")
     port.names = updated
     trigger_model_click(app)
-    pump_until(app, lambda: combo_values(app.model) == updated)
-    assert combo_values(app.model) == updated, (
+    pump_until(app, lambda: combo_values(app.model) == with_cloud(updated))
+    assert combo_values(app.model) == with_cloud(updated), (
         "после клика по Модель в списке появляются имена нового ответа API"
     )
 
@@ -54,8 +54,8 @@ def test_should_update_model_list_when_model_receives_focus(open_window):
     updated = ("llama3.2", "qwen2.5:3b", "gemma2")
     port.names = updated
     trigger_model_focus(app)
-    pump_until(app, lambda: combo_values(app.model) == updated)
-    assert combo_values(app.model) == updated, (
+    pump_until(app, lambda: combo_values(app.model) == with_cloud(updated))
+    assert combo_values(app.model) == with_cloud(updated), (
         "после фокуса на Модель в списке появляются имена нового ответа API"
     )
 
@@ -99,7 +99,8 @@ def test_should_select_default_when_current_model_missing_after_refresh(open_win
     app.update_idletasks()
     port.names = ("qwen2.5:3b", "qwen2.5:7b", "phi3")
     trigger_model_click(app)
-    pump_until(app, lambda: combo_values(app.model) == ("qwen2.5:3b", "qwen2.5:7b", "phi3"))
+    expected = with_cloud(("qwen2.5:3b", "qwen2.5:7b", "phi3"))
+    pump_until(app, lambda: combo_values(app.model) == expected)
     assert app.model.get() == "qwen2.5:7b", (
         "если прежнего выбора нет в новом ответе, в списке снова правило умолчания FT-041"
     )

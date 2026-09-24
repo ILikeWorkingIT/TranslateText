@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import pytest
-
-from domain.errors import OllamaUnavailableError
-from domain.models import RefreshModelsCommand
+from domain.models import CLOUD_MODELS, DEFAULT_CLOUD_MODEL, RefreshModelsCommand
 from use_cases.refresh_models import RefreshModels, select_model
 
 
@@ -29,7 +26,7 @@ def test_should_select_qwen_when_preferred_model_is_in_response() -> None:
     event = RefreshModels(FakeOllama(models)).run(
         RefreshModelsCommand(request_id=1, current_model="")
     )
-    assert event.models == models
+    assert event.models == models + CLOUD_MODELS
     assert event.selected_model == "qwen2.5:7b"
     assert event.request_id == 1
 
@@ -64,12 +61,14 @@ def test_should_keep_all_api_names_when_list_includes_non_qwen() -> None:
     event = RefreshModels(FakeOllama(models)).run(
         RefreshModelsCommand(request_id=4, current_model="")
     )
-    assert event.models == models
+    assert event.models == models + CLOUD_MODELS
 
 
-def test_should_raise_unavailable_when_port_returns_empty_list() -> None:
-    """Пустой список моделей — OllamaUnavailableError, не первая «пустая»."""
-    with pytest.raises(OllamaUnavailableError):
-        RefreshModels(FakeOllama(())).run(
-            RefreshModelsCommand(request_id=5, current_model="")
-        )
+def test_should_show_gemini_models_when_port_returns_empty_list() -> None:
+    """Пустой локальный список: в списке остаются модели Gemini."""
+    event = RefreshModels(FakeOllama(())).run(
+        RefreshModelsCommand(request_id=5, current_model="")
+    )
+    assert event.models == CLOUD_MODELS
+    assert event.selected_model == DEFAULT_CLOUD_MODEL
+    assert event.ollama_available is False

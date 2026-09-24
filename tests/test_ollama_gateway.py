@@ -109,6 +109,8 @@ def test_should_post_chat_to_local_ollama_when_translating_fragment() -> None:
         options = body["options"]
         assert options["num_predict"] == OLLAMA_NUM_PREDICT
         assert options["temperature"] == OLLAMA_TEMPERATURE
+        assert options["top_p"] == 0.9
+        assert options["repeat_penalty"] == 1.1
         assert "Конец исходника" in options["stop"]
         return httpx.Response(
             200,
@@ -187,6 +189,7 @@ def test_should_add_russian_example_when_direction_is_en_ru() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         body = json.loads(request.content.decode("utf-8"))
         messages = body["messages"]
+        assert "иероглиф" in messages[0]["content"]
         assert messages[1] == {"role": "user", "content": "I love this city"}
         assert messages[2] == {
             "role": "assistant",

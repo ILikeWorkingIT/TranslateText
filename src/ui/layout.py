@@ -10,6 +10,7 @@ from typing import Literal
 import customtkinter as ctk
 
 from domain.models import (
+    CLOUD_MODELS,
     ExportFormat,
     ModelsRefreshedEvent,
     QueueEvent,
@@ -485,7 +486,9 @@ class TranslateTextWindow(ctk.CTk):
     def _on_models_refreshed(self, event: ModelsRefreshedEvent) -> None:
         self._applying_models = True
         try:
-            self._ollama_availability = "available"
+            self._ollama_availability = (
+                "available" if event.ollama_available else "unavailable"
+            )
             # Выбор мог смениться, пока шёл опрос (клик открыл список → refresh
             # со старой моделью → пользователь уже выбрал другую). Не затирать.
             live = str(self.model.get())
@@ -548,6 +551,8 @@ class TranslateTextWindow(ctk.CTk):
         return len(tuple(values)) == 0
 
     def _ollama_blocks_translate(self) -> bool:
+        if str(self.model.get()) in CLOUD_MODELS:
+            return False
         return (
             self._ollama_availability == "unavailable" or self._models_empty()
         )
@@ -813,7 +818,9 @@ class TranslateTextWindow(ctk.CTk):
             self._ui_state = "idle"
             self._cancel_requested = False
             self._refresh_action_states()
-            if event.incomplete_cause == "cancelled":
+            if event.detail:
+                self.status.configure(text=event.detail)
+            elif event.incomplete_cause == "cancelled":
                 self.status.configure(text=STATUS_TRANSLATION_CANCELLED)
             else:
                 self.status.configure(text=STATUS_TRANSLATION_INCOMPLETE)
